@@ -17,6 +17,7 @@ import { NotFound } from './main/not_found';
 import { Route } from './route';
 import * as ROUTES from './routes';
 import { Search } from './search_page/search';
+import { FlyoutDemo } from './apm_demo/file_preview_demo';
 
 const RooComponent = (props: { setupOk?: boolean }) => {
   if (props.setupOk) {
@@ -45,6 +46,7 @@ export const App = () => {
         <Route path={ROUTES.SEARCH} component={Search} />
         <Route path={ROUTES.REPO} render={Empty} exact={true} />
         <Route path={ROUTES.SETUP} component={SetupGuide} exact={true} />
+        <Route path={ROUTES.APM_DEMO} component={FlyoutDemo} exact={true} />
         <Route path="*" component={NotFound} />
       </Switch>
     </Router>
