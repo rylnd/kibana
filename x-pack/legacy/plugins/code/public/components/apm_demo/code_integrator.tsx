@@ -8,15 +8,11 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { EuiButtonEmpty, EuiPopover, EuiText } from '@elastic/eui';
 
-import { history } from '../../utils/url';
 import { RepoSelector } from './repo_selector';
-import { Frame } from './data';
 
 interface Props {
   onRepoSelect: (repo: string) => void;
   onImportSuccess: (repo: string) => void;
-  isIntegrated: boolean;
-  frame: Frame;
   repos: string[];
 }
 
@@ -25,23 +21,10 @@ const PopoverContent = styled.div`
   width: 300px;
 `;
 
-export const CodeIntegration = ({
-  frame,
-  isIntegrated,
-  onRepoSelect,
-  onImportSuccess,
-  repos,
-}: Props) => {
+export const CodeIntegrator = ({ onRepoSelect, onImportSuccess, repos }: Props) => {
   const [showSelector, setShowSelector] = useState(false);
 
-  const handleClick = () => {
-    if (isIntegrated) {
-      const fileLinkUrl = `/${frame.uri}/blob/HEAD/${frame.filePath}`;
-      history.push(fileLinkUrl);
-    } else {
-      setShowSelector(true);
-    }
-  };
+  const handleClick = () => setShowSelector(true);
 
   const handleSelect = (codeId: string) => {
     onRepoSelect(codeId);
@@ -50,7 +33,7 @@ export const CodeIntegration = ({
   };
 
   const button = (
-    <EuiButtonEmpty iconType="logoCode" onClick={handleClick}>
+    <EuiButtonEmpty iconType="codeApp" onClick={handleClick}>
       View in Code
     </EuiButtonEmpty>
   );

@@ -6,53 +6,46 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { EuiFlexGroup, EuiText } from '@elastic/eui';
 
-import { CodeBlock } from '../codeblock/codeblock';
-import { CodeIntegration } from './code_integration';
-import { Frame, frames, repos } from './data';
+import { EmbeddedCodeBlock } from '../codeblock/embedded_codeblock';
+import { CodeIntegrator } from './code_integrator';
+import { frames, Frame, results, repos } from './data';
 
 const Container = styled.div`
   padding: 1rem;
 `;
 
-const AlignRight = styled.div`
-  text-align: right;
-`;
-
 const associateToService = (frame: Frame) => (repo: string) =>
-  alert(`repo ${repo} associated with frame ${JSON.stringify(frame)}`);
+  alert(`repo ${repo} associated with service ${JSON.stringify(frame)}`);
+
 const handleImport = (repo: string) => alert(`import done: ${repo}`);
 
 export const ApmDemo = () => (
   <Container>
-    {frames.map((frame, i) => {
-      const { uri, filePath, compositeContent, language } = frame;
-      const { content, lineMapping, ranges } = compositeContent;
-      const isIntegrated = i % 2 === 0;
-      const key = `${uri}-${filePath}`;
+    {frames.map(frame => {
+      const { fileName, lineNumber, functionName } = frame;
+      const key = `${fileName}-${lineNumber}-${functionName}`;
+      const snippet = results[`${fileName}#L${lineNumber}`];
 
-      return (
-        <div key={key}>
-          <AlignRight>
-            <CodeIntegration
-              repos={repos}
-              isIntegrated={isIntegrated}
-              frame={frame}
-              onRepoSelect={associateToService(frame)}
-              onImportSuccess={handleImport}
-            />
-          </AlignRight>
-          <CodeBlock
-            language={language}
-            startLine={0}
-            code={content}
-            highlightRanges={ranges}
-            folding={false}
-            lineNumbersFunc={l => lineMapping[l - 1]}
-            onClick={() => {}}
+      const line = snippet ? (
+        <EmbeddedCodeBlock snippet={snippet} frame={frame} />
+      ) : (
+        <EuiFlexGroup justifyContent="spaceBetween" gutterSize="none">
+          <EuiText size="s" className="integrations__code">
+            <span>{frame.fileName}</span>
+            <span className="integrations__preposition">at</span>
+            <span>line {frame.lineNumber}</span>
+          </EuiText>
+          <CodeIntegrator
+            onRepoSelect={associateToService(frame)}
+            onImportSuccess={handleImport}
+            repos={repos}
           />
-        </div>
+        </EuiFlexGroup>
       );
+
+      return <div key={key}>{line}</div>;
     })}
   </Container>
 );

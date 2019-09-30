@@ -11,8 +11,9 @@ import { ResizeChecker } from 'ui/resize_checker';
 import { monaco } from '../../monaco/monaco';
 import { registerEditor } from '../../monaco/single_selection_helper';
 
-interface Props {
+export interface Props {
   code: string;
+  isEmbedded?: boolean;
   fileComponent?: React.ReactNode;
   startLine?: number;
   language?: string;
