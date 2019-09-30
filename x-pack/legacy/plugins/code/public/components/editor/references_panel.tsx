@@ -119,7 +119,7 @@ export class ReferencesPanel extends React.Component<Props, State> {
     };
     const fileComponent = (
       <React.Fragment>
-        <EuiText>
+        <EuiText size="s">
           <a href={`#${this.computeUrl(file.uri)}`}>{file.file}</a>
         </EuiText>
         <EuiSpacer size="s" />
