@@ -75,6 +75,7 @@ export class CodeResult extends React.PureComponent<Props> {
           </EuiFlexGroup>
           <CodeBlock
             key={`code${key}`}
+            className="codeResult__code-block"
             language={item.language}
             startLine={0}
             code={content}

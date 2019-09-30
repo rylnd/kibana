@@ -21,6 +21,7 @@ export interface Props {
   onClick?: (event: IPosition) => void;
   folding: boolean;
   lineNumbersFunc: (line: number) => string;
+  className?: string;
 }
 
 export class CodeBlock extends React.PureComponent<Props> {
@@ -140,7 +141,7 @@ export class CodeBlock extends React.PureComponent<Props> {
   public render() {
     const linesCount = this.props.code.split('\n').length;
     return (
-      <EuiPanel style={{ marginBottom: '2rem' }} paddingSize="s">
+      <EuiPanel paddingSize="s" className={this.props.className}>
         {this.props.fileComponent}
         <div ref={r => (this.el = r)} style={{ height: linesCount * 18 }} />
       </EuiPanel>

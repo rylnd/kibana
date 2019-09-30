@@ -128,6 +128,7 @@ export class ReferencesPanel extends React.Component<Props, State> {
 
     return (
       <CodeBlock
+        className="referencesPanel__code-block"
         key={key}
         language={file.language}
         startLine={0}
