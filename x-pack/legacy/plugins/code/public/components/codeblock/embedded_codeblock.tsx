@@ -31,8 +31,9 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
       gutterSize="none"
     >
       <EuiText size="s">
-        <EuiLink href="">{frame.fileName}</EuiLink>
-        <span> at line {frame.lineNumber}</span>
+        <EuiLink href={fileUrl}>{frame.fileName}</EuiLink>
+        <span> at </span>
+        <EuiLink href={fileUrl}>line {frame.lineNumber}</EuiLink>
       </EuiText>
       <EuiText size="xs">
         <EuiTextColor color="subdued">Last updated: 14 mins ago</EuiTextColor>
