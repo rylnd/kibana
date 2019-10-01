@@ -152,7 +152,7 @@ export const results: Results = {
 
   'ringside.story.tsx#L8': {
     uri: 'github.com/rylnd/ringside',
-    filePath: 'test/ringside.story.tsx',
+    filePath: 'stories/ringside.story.tsx',
     language: 'typescript',
     hits: 7,
     compositeContent: {
@@ -220,7 +220,7 @@ export const results: Results = {
 
   'ringside.story.tsx#L14': {
     uri: 'github.com/rylnd/ringside',
-    filePath: 'test/ringside.story.tsx',
+    filePath: 'stories/ringside.story.tsx',
     language: 'typescript',
     hits: 7,
     compositeContent: {
