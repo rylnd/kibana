@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { EuiButtonIcon, EuiFlexGroup, EuiLink, EuiText } from '@elastic/eui';
+import { EuiButtonIcon, EuiFlexGroup, EuiLink, EuiText, EuiTextColor } from '@elastic/eui';
 
 import { RepositoryUtils } from '../../../common/repository_utils';
 import { CodeBlock } from './codeblock';
@@ -34,11 +34,14 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
         <EuiLink href="">{frame.fileName}</EuiLink>
         <span> at line {frame.lineNumber}</span>
       </EuiText>
-      <EuiButtonIcon
-        className="integrations__link--external integrations__button-icon"
-        iconType="codeApp"
-        href={fileUrl}
-      />
+      <EuiText size="xs">
+        <EuiTextColor color="subdued">Last updated: 14 mins ago</EuiTextColor>
+        <EuiButtonIcon
+          className="integrations__link--external integrations__button-icon"
+          iconType="codeApp"
+          href={fileUrl}
+        />
+      </EuiText>
     </EuiFlexGroup>
   );
 
