@@ -217,6 +217,74 @@ export const results: Results = {
       ],
     },
   },
+
+  'ringside.story.tsx#L14': {
+    uri: 'github.com/rylnd/ringside',
+    filePath: 'test/ringside.story.tsx',
+    language: 'typescript',
+    hits: 7,
+    compositeContent: {
+      content:
+        "import { Ringside } from '../src';\n\ndescribe('Ringside', () => {\n  let inner;\n  let outer;\n  let height;\n  let width;\n  let ringside: Ringside;\n\n  beforeEach(() => {\n\n    width = 50;\n\n    ringside = new Ringside(inner, outer, height, width);\n  });\n\n",
+      lineMapping: [
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '10',
+        '..',
+        '14',
+        '15',
+        '16',
+        '17',
+        '18',
+        '..',
+      ],
+      ranges: [
+        {
+          startColumn: 10,
+          startLineNumber: 1,
+          endColumn: 18,
+          endLineNumber: 1,
+        },
+        {
+          startColumn: 11,
+          startLineNumber: 3,
+          endColumn: 19,
+          endLineNumber: 3,
+        },
+        {
+          startColumn: 7,
+          startLineNumber: 8,
+          endColumn: 15,
+          endLineNumber: 8,
+        },
+        {
+          startColumn: 17,
+          startLineNumber: 8,
+          endColumn: 25,
+          endLineNumber: 8,
+        },
+        {
+          startColumn: 5,
+          startLineNumber: 14,
+          endColumn: 13,
+          endLineNumber: 14,
+        },
+        {
+          startColumn: 20,
+          startLineNumber: 14,
+          endColumn: 28,
+          endLineNumber: 14,
+        },
+      ],
+    },
+  },
 };
 
 export interface Frame {
@@ -232,6 +300,7 @@ export const frames: Frame[] = [
   { fileName: 'node_modules/other_stuff.js', lineNumber: 58 },
   { fileName: 'node_modules/other/other.js', lineNumber: 3 },
   { fileName: 'ringside.story.tsx', lineNumber: 12 },
+  { fileName: 'ringside.story.tsx', lineNumber: 14 },
 ];
 
 export const repos = [
