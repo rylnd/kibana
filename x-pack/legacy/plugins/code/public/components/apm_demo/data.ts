@@ -229,6 +229,8 @@ export const frames: Frame[] = [
   { fileName: 'ringside.ts', lineNumber: 18 },
   { fileName: 'node_modules/library_code.js', lineNumber: 100 },
   { fileName: 'ringside.story.tsx', lineNumber: 8 },
+  { fileName: 'node_modules/other_stuff.js', lineNumber: 58 },
+  { fileName: 'node_modules/other/other.js', lineNumber: 3 },
   { fileName: 'ringside.story.tsx', lineNumber: 12 },
 ];
 

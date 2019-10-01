@@ -34,7 +34,7 @@ export const CodeIntegrator = ({ onRepoSelect, onImportSuccess, repos }: Props) 
 
   const button = (
     <EuiButtonEmpty iconType="codeApp" onClick={handleClick}>
-      View in Code
+      <EuiText size="s">View in Code</EuiText>
     </EuiButtonEmpty>
   );
 

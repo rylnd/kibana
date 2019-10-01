@@ -1,3 +1,7 @@
+.integrations__frame {
+  margin: $euiSize 0;
+}
+
 .integrations__preposition {
   margin: 0 $euiSizeS;
   color: $euiColorMediumShade;
@@ -5,4 +9,12 @@
 
 .integrations__code {
   @include euiCodeFont;
+}
+
+.integrations__snippet-title {
+  margin-bottom: $euiSizeS;
+}
+
+.integrations__text--bold {
+  font-weight: $euiFontWeightBold;
 }

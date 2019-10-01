@@ -28,10 +28,10 @@ export const ApmDemo = () => (
       const key = `${fileName}-${lineNumber}-${functionName}`;
       const snippet = results[`${fileName}#L${lineNumber}`];
 
-      const line = snippet ? (
+      const children = snippet ? (
         <EmbeddedCodeBlock snippet={snippet} frame={frame} />
       ) : (
-        <EuiFlexGroup justifyContent="spaceBetween" gutterSize="none">
+        <EuiFlexGroup justifyContent="spaceBetween" gutterSize="none" alignItems="center">
           <EuiText size="s" className="integrations__code">
             <span>{frame.fileName}</span>
             <span className="integrations__preposition">at</span>
@@ -45,7 +45,11 @@ export const ApmDemo = () => (
         </EuiFlexGroup>
       );
 
-      return <div key={key}>{line}</div>;
+      return (
+        <div key={key} className="integrations__frame">
+          {children}
+        </div>
+      );
     })}
   </Container>
 );
