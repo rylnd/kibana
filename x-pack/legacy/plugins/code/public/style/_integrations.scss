@@ -1,5 +1,9 @@
 .integrations__frame {
-  margin: $euiSize 0;
+  margin: $euiSizeS 0;
+}
+
+.integrations__link--external {
+  height: $euiSize;
 }
 
 .integrations__preposition {

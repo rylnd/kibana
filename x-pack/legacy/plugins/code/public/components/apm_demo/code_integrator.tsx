@@ -32,8 +32,12 @@ export const CodeIntegrator = ({ onRepoSelect, onImportSuccess, repos }: Props) 
     // TODO: show success
   };
 
-  const button = (
-    <EuiButtonEmpty iconType="codeApp" onClick={handleClick}>
+  const link = (
+    <EuiButtonEmpty
+      className="integrations__link--external"
+      iconType="codeApp"
+      onClick={handleClick}
+    >
       <EuiText size="s">View in Code</EuiText>
     </EuiButtonEmpty>
   );
@@ -41,7 +45,7 @@ export const CodeIntegrator = ({ onRepoSelect, onImportSuccess, repos }: Props) 
   return (
     <EuiPopover
       anchorPosition="leftCenter"
-      button={button}
+      button={link}
       isOpen={showSelector}
       closePopover={() => setShowSelector(false)}
     >

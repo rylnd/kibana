@@ -22,7 +22,7 @@ const associateToService = (frame: Frame) => (repo: string) =>
 const handleImport = (repo: string) => alert(`import done: ${repo}`);
 
 export const ApmDemo = () => (
-  <Container>
+  <Container className="codeContainer__root">
     {frames.map(frame => {
       const { fileName, lineNumber, functionName } = frame;
       const key = `${fileName}-${lineNumber}-${functionName}`;
