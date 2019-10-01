@@ -27,7 +27,7 @@ import { ToastType } from '../../reducers/repository_management';
 import { isImportRepositoryURLInvalid } from '../../utils/url';
 import { ProjectItem } from './project_item';
 import { ProjectSettings } from './project_settings';
-import { ImportModal } from '../apm_demo/import_modal';
+import { ImportModal } from '../integrations/import_modal';
 
 enum SortOptionsValue {
   AlphabeticalAsc = 'alphabetical_asc',

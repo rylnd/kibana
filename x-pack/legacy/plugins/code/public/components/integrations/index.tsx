@@ -21,7 +21,7 @@ const associateToService = (frame: Frame) => (repo: string) =>
 
 const handleImport = (repo: string) => alert(`import done: ${repo}`);
 
-export const ApmDemo = () => (
+export const Integrations = () => (
   <Container className="codeContainer__root">
     {frames.map(frame => {
       const { fileName, lineNumber, functionName } = frame;

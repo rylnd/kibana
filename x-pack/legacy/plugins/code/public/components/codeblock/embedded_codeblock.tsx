@@ -9,7 +9,7 @@ import { EuiButtonIcon, EuiFlexGroup, EuiLink, EuiText, EuiTextColor } from '@el
 
 import { RepositoryUtils } from '../../../common/repository_utils';
 import { CodeBlock } from './codeblock';
-import { Frame, Snippet } from '../apm_demo/data';
+import { Frame, Snippet } from '../integrations/data';
 
 export interface Props {
   snippet: Snippet;
