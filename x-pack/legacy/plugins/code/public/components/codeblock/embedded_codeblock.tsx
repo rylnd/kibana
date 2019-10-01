@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { EuiButtonEmpty, EuiFlexGroup, EuiLink, EuiText } from '@elastic/eui';
+import { EuiButtonIcon, EuiFlexGroup, EuiLink, EuiText } from '@elastic/eui';
 
 import { RepositoryUtils } from '../../../common/repository_utils';
 import { CodeBlock } from './codeblock';
@@ -24,12 +24,21 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
   const repoName = RepositoryUtils.repoNameFromUri(snippet.uri);
 
   const topBar = (
-    <EuiFlexGroup justifyContent="spaceBetween" gutterSize="none">
+    <EuiFlexGroup
+      className="integrations__snippet-info"
+      alignItems="center"
+      justifyContent="spaceBetween"
+      gutterSize="none"
+    >
       <EuiText size="s">
         <EuiLink href="">{frame.fileName}</EuiLink>
         <span> at line {frame.lineNumber}</span>
       </EuiText>
-      <EuiButtonEmpty iconType="codeApp" href={fileUrl} />
+      <EuiButtonIcon
+        className="integrations__link--external integrations__button-icon"
+        iconType="codeApp"
+        href={fileUrl}
+      />
     </EuiFlexGroup>
   );
 

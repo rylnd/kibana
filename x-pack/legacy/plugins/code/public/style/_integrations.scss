@@ -2,6 +2,10 @@
   margin: $euiSizeS 0;
 }
 
+.integrations__code {
+  @include euiCodeFont;
+}
+
 .integrations__link--external {
   height: $euiSize;
 }
@@ -11,8 +15,14 @@
   color: $euiColorMediumShade;
 }
 
-.integrations__code {
-  @include euiCodeFont;
+.integrations__button-icon {
+  padding: $euiSizeXS;
+  background-color: $euiColorLightestShade;
+  border: 1px solid $euiColorLightShade;
+}
+
+.integrations__snippet-info {
+  margin-bottom: $euiSizeS;
 }
 
 .integrations__snippet-title {
