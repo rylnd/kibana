@@ -41,6 +41,7 @@ export const code = (kibana: any) =>
         const config = server.config();
         return {
           codeUiEnabled: config.get('xpack.code.ui.enabled'),
+          codeIntegrationsEnabled: config.get('xpack.code.integrations.enabled'),
         };
       },
       hacks: ['plugins/code/hacks/toggle_app_link_in_nav'],
@@ -60,6 +61,9 @@ export const code = (kibana: any) =>
       return Joi.object({
         ui: Joi.object({
           enabled: Joi.boolean().default(true),
+        }).default(),
+        integrations: Joi.object({
+          enabled: Joi.boolean().default(false),
         }).default(),
         enabled: Joi.boolean().default(true),
         queueIndex: Joi.string().default('.code_internal-worker-queue'),
