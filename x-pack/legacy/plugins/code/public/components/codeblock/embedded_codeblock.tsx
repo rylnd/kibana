@@ -4,11 +4,12 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { EuiButtonIcon, EuiFlexGroup, EuiLink, EuiText, EuiTextColor } from '@elastic/eui';
 
 import { RepositoryUtils } from '../../../common/repository_utils';
 import { CodeBlock } from './codeblock';
+import { CodeFlyout } from '../integrations/code_flyout';
 import { Frame, Snippet } from '../integrations/data';
 
 export interface Props {
@@ -22,6 +23,8 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
   const fileUrl = `#/${snippet.uri}/blob/HEAD/${snippet.filePath}`;
   const repoOrg = RepositoryUtils.orgNameFromUri(snippet.uri);
   const repoName = RepositoryUtils.repoNameFromUri(snippet.uri);
+  const [isFlyoutVisible, setIsFlyoutVisible] = useState(false);
+  const openFlyout = () => setIsFlyoutVisible(true);
 
   const topBar = (
     <EuiFlexGroup
@@ -31,9 +34,9 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
       gutterSize="none"
     >
       <EuiText size="s">
-        <EuiLink href={fileUrl}>{frame.fileName}</EuiLink>
+        <EuiLink onClick={openFlyout}>{frame.fileName}</EuiLink>
         <span> at </span>
-        <EuiLink href={fileUrl}>line {frame.lineNumber}</EuiLink>
+        <EuiLink onClick={openFlyout}>line {frame.lineNumber}</EuiLink>
       </EuiText>
       <EuiText size="xs">
         <EuiTextColor color="subdued">Last updated: 14 mins ago</EuiTextColor>
@@ -48,6 +51,13 @@ export const EmbeddedCodeBlock = ({ frame, snippet }: Props) => {
 
   return (
     <>
+      <CodeFlyout
+        open={isFlyoutVisible}
+        onClose={() => setIsFlyoutVisible(false)}
+        file={snippet.filePath}
+        repo={snippet.uri}
+        revision={'master'}
+      />
       <EuiText size="s" className="integrations__snippet-title">
         <span>{repoOrg}/</span>
         <span className="integrations__text--bold">{repoName}</span>
