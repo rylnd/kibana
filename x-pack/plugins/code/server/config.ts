@@ -32,6 +32,9 @@ const createCodeConfigSchema = () => {
       enabled: schema.boolean({ defaultValue: true }),
     }),
     enabled: schema.boolean({ defaultValue: true }),
+    integrations: schema.object({
+      enabled: schema.boolean({ defaultValue: false }),
+    }),
     queueIndex: schema.string({ defaultValue: '.code_internal-worker-queue' }),
     // 1 hour by default.
     queueTimeoutMs: schema.number({
