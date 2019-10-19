@@ -11,11 +11,12 @@ import { CodeBlock } from '../code_block';
 import { FrameHeader } from './frame_header';
 import { RepoTitle } from './repo_title';
 import { CodeIntegrator } from './code_integrator';
-import { frames, Frame, repos, results } from './data';
+import { CodeIntegratorPanel } from './code_integrator_panel';
+import { frames, repos, results } from './data';
 import { CodeFlyout } from './code_flyout';
 
-const associateToService = (frame: Frame) => (repo: string) =>
-  alert(`repo ${repo} associated with service ${JSON.stringify(frame)}`);
+const associateToService = (service: any) => (repo: string) =>
+  alert(`repo ${repo} associated with service ${JSON.stringify(service)}`);
 
 const handleImport = (repo: string) => alert(`import done: ${repo}`);
 
@@ -91,6 +92,11 @@ export const Integrations = () => {
           </div>
         );
       })}
+      <CodeIntegratorPanel
+        onRepoSelect={associateToService('myService')}
+        onImportSuccess={handleImport}
+        repos={repos}
+      />
     </div>
   );
 };
