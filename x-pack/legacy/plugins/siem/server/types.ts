@@ -15,14 +15,18 @@ export interface ServerFacade {
     alerting?: Legacy.Server['plugins']['alerting'];
     xpack_main: Legacy.Server['plugins']['xpack_main'];
   };
-  route: Legacy.Server['route'];
   savedObjects: Legacy.Server['savedObjects'];
+}
+
+export interface LegacyPlugins {
+  actions?: Legacy.Server['plugins']['actions'];
+  alerting?: Legacy.Server['plugins']['alerting'];
 }
 
 export interface RequestFacade {
   auth: Legacy.Request['auth'];
-  getAlertsClient?: Legacy.Request['getAlertsClient'];
-  getActionsClient?: Legacy.Request['getActionsClient'];
+  // getAlertsClient?: Legacy.Request['getAlertsClient'];
+  // getActionsClient?: Legacy.Request['getActionsClient'];
   params: Legacy.Request['params'];
   payload: unknown;
   query: Legacy.Request['query'];

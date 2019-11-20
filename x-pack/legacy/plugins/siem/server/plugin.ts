@@ -5,7 +5,7 @@
  */
 
 import { CoreSetup, PluginInitializerContext, Logger } from 'src/core/server';
-import { ServerFacade } from './types';
+import { ServerFacade, LegacyPlugins } from './types';
 import { initServerWithKibana } from './kibana.index';
 
 export class Plugin {
@@ -18,10 +18,15 @@ export class Plugin {
     this.logger.info('NP plugin initialized');
   }
 
-  public setup(core: CoreSetup, dependencies: {}, __legacy: ServerFacade) {
+  public setup(
+    core: CoreSetup,
+    dependencies: {},
+    __legacy: ServerFacade,
+    legacyPlugins: LegacyPlugins
+  ) {
     this.logger.info('NP plugin setup');
 
-    initServerWithKibana(core, __legacy, this.logger);
+    initServerWithKibana(core, __legacy, this.logger, legacyPlugins);
 
     this.logger.info('NP plugin setup complete');
   }

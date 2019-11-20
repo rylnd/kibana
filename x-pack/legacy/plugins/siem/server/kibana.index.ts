@@ -46,7 +46,7 @@ export const initServerWithKibana = (core: CoreSetup, kbnServer: ServerFacade, l
     logger.info(
       'Detected feature flags for actions and alerting and enabling signals API endpoints'
     );
-    createSignalsRoute(kbnServer);
+    createSignalsRoute(core);
     readSignalsRoute(kbnServer);
     updateSignalsRoute(kbnServer);
     deleteSignalsRoute(kbnServer);
