@@ -10,6 +10,7 @@ import { Server } from 'hapi';
 
 import { PluginInitializerContext } from 'src/core/server';
 import { plugin } from './server';
+import { DetectionEngine } from './server/plugins';
 import { savedObjectMappings } from './server/saved_objects';
 
 import {
@@ -27,7 +28,6 @@ import {
   DEFAULT_SIGNALS_INDEX_KEY,
 } from './common/constants';
 import { defaultIndexPattern } from './default_index_pattern';
-import { initServerWithKibana } from './server/kibana.index';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const siem = (kibana: any) => {
@@ -145,7 +145,7 @@ export const siem = (kibana: any) => {
       // @ts-ignore-next-line: setup.plugins is too loosely typed
       plugin(initializerContext).setup(setup.core, setup.plugins);
 
-      initServerWithKibana(initializerContext, serverFacade);
+      new DetectionEngine(initializerContext).setup(serverFacade);
     },
   });
 };
