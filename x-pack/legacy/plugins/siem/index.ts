@@ -154,7 +154,7 @@ export const siem = (kibana: any) => {
       // @ts-ignore-next-line: setup.plugins is too loosely typed
       plugin(initializerContext).setup(setup.core, setup.plugins);
 
-      new DetectionEngine(initializerContext).setup(serverFacade);
+      new DetectionEngine(initializerContext).setup(setup.core, setup.plugins, serverFacade);
     },
     config(Joi: Root) {
       return Joi.object()

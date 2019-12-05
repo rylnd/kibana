@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { PluginInitializerContext, Logger } from 'src/core/server';
+import { PluginInitializerContext, Logger, CoreSetup } from 'src/core/server';
 import { ServerFacade } from '../../types';
 import { rulesAlertType } from './alerts/rules_alert_type';
 import { isAlertExecutor } from './alerts/types';
@@ -27,7 +27,7 @@ export class Plugin {
     this.logger = context.logger.get('plugins', 'siem', this.name);
   }
 
-  public setup(__legacy: ServerFacade) {
+  public setup(core: CoreSetup, plugins: {}, __legacy: ServerFacade) {
     const version = this.context.env.packageInfo.version;
 
     if (__legacy.plugins.alerting != null) {
