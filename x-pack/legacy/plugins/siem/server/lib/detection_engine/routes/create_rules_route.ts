@@ -4,107 +4,158 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import Hapi from 'hapi';
-import { isFunction } from 'lodash/fp';
-import Boom from 'boom';
 import uuid from 'uuid';
+import { schema } from '@kbn/config-schema';
+import { CoreSetup } from 'src/core/server';
+import { ensureRawRequest } from 'src/core/server/http/router';
 import { DETECTION_ENGINE_RULES_URL } from '../../../../common/constants';
 import { createRules } from '../alerts/create_rules';
-import { RulesRequest } from '../alerts/types';
-import { createRulesSchema } from './schemas';
-import { ServerFacade } from '../../../types';
 import { readRules } from '../alerts/read_rules';
-import { transformOrError, transformError } from './utils';
+import { transformAlertToRule } from './utils';
+import { ServerFacade } from '../../../types';
+import { isAlertType } from '../alerts/types';
 
-export const createCreateRulesRoute: Hapi.ServerRoute = {
-  method: 'POST',
-  path: DETECTION_ENGINE_RULES_URL,
-  options: {
-    tags: ['access:siem'],
-    validate: {
+const body = schema.object({
+  description: schema.string(),
+  enabled: schema.boolean({ defaultValue: true }),
+  false_positives: schema.arrayOf(schema.string(), { defaultValue: [] }),
+  filter: schema.object({}),
+  filters: schema.arrayOf(schema.object({})),
+  from: schema.string(),
+  immutable: schema.boolean({ defaultValue: false }),
+  index: schema.arrayOf(schema.string()),
+  interval: schema.string({ defaultValue: '5m' }),
+  language: schema.string(),
+  max_signals: schema.number({ min: 0, defaultValue: 100 }),
+  meta: schema.object({}),
+  name: schema.string(),
+  output_index: schema.string(),
+  query: schema.string(),
+  references: schema.arrayOf(schema.string()),
+  risk_score: schema.number({ min: 0, max: 100 }),
+  rule_id: schema.string(),
+  saved_id: schema.string(),
+  severity: schema.string(),
+  size: schema.number(),
+  tags: schema.arrayOf(schema.string()),
+  threats: schema.arrayOf(
+    schema.object({
+      framework: schema.string(),
+      tactic: schema.object({
+        id: schema.string(),
+        name: schema.string(),
+        reference: schema.string(),
+      }),
+      technique: schema.object({
+        id: schema.string(),
+        name: schema.string(),
+        reference: schema.string(),
+      }),
+    })
+  ),
+  to: schema.string(),
+  type: schema.oneOf([
+    schema.literal('filter'),
+    schema.literal('query'),
+    schema.literal('saved_query'),
+  ]),
+});
+
+export const createRulesRoute = (core: CoreSetup, __legacy: ServerFacade): void => {
+  const router = core.http.createRouter();
+
+  router.post(
+    {
+      path: DETECTION_ENGINE_RULES_URL,
+      validate: { body },
       options: {
-        abortEarly: false,
+        tags: ['access:siem'],
       },
-      payload: createRulesSchema,
     },
-  },
-  async handler(request: RulesRequest, headers) {
-    const {
-      description,
-      enabled,
-      false_positives: falsePositives,
-      filter,
-      from,
-      immutable,
-      query,
-      language,
-      output_index: outputIndex,
-      saved_id: savedId,
-      meta,
-      filters,
-      rule_id: ruleId,
-      index,
-      interval,
-      max_signals: maxSignals,
-      risk_score: riskScore,
-      name,
-      severity,
-      tags,
-      threats,
-      to,
-      type,
-      references,
-    } = request.payload;
-    const alertsClient = isFunction(request.getAlertsClient) ? request.getAlertsClient() : null;
-    const actionsClient = isFunction(request.getActionsClient) ? request.getActionsClient() : null;
-
-    if (!alertsClient || !actionsClient) {
-      return headers.response().code(404);
-    }
-
-    try {
-      if (ruleId != null) {
-        const rule = await readRules({ alertsClient, ruleId });
-        if (rule != null) {
-          return new Boom(`rule_id ${ruleId} already exists`, { statusCode: 409 });
-        }
-      }
-
-      const createdRule = await createRules({
-        alertsClient,
-        actionsClient,
+    async (context, request, response) => {
+      const {
         description,
         enabled,
-        falsePositives,
+        false_positives: falsePositives,
         filter,
         from,
         immutable,
         query,
         language,
-        outputIndex,
-        savedId,
+        output_index: outputIndex,
+        saved_id: savedId,
         meta,
         filters,
-        ruleId: ruleId != null ? ruleId : uuid.v4(),
+        rule_id: ruleId,
         index,
         interval,
-        maxSignals,
-        riskScore,
+        max_signals: maxSignals,
+        risk_score: riskScore,
         name,
         severity,
         tags,
+        threats,
         to,
         type,
-        threats,
         references,
-      });
-      return transformOrError(createdRule);
-    } catch (err) {
-      return transformError(err);
-    }
-  },
-};
+      } = request.body;
 
-export const createRulesRoute = (route: ServerFacade['route']): void => {
-  route(createCreateRulesRoute);
+      const alertsClient = __legacy.plugins.alerting!.start.getAlertsClientWithRequest(
+        ensureRawRequest(request)
+      );
+      const actionsClient = null;
+
+      if (!alertsClient || !actionsClient) {
+        return response.notFound();
+      }
+
+      try {
+        if (ruleId != null) {
+          const rule = await readRules({ alertsClient, ruleId });
+          if (rule != null) {
+            return response.conflict({
+              body: `rule_id ${ruleId} already exists`,
+            });
+          }
+        }
+
+        const createdRule = await createRules({
+          alertsClient,
+          actionsClient,
+          description,
+          enabled,
+          falsePositives,
+          filter,
+          from,
+          immutable,
+          query,
+          language,
+          outputIndex,
+          savedId,
+          meta,
+          filters,
+          ruleId: ruleId != null ? ruleId : uuid.v4(),
+          index,
+          interval,
+          maxSignals,
+          riskScore,
+          name,
+          severity,
+          tags,
+          to,
+          type,
+          threats,
+          references,
+        });
+
+        if (isAlertType(createdRule)) {
+          return response.ok({ body: transformAlertToRule(createdRule) });
+        }
+
+        return response.internalError({ body: 'Internal error transforming' });
+      } catch (err) {
+        return response.internalError({ body: err.message });
+      }
+    }
+  );
 };

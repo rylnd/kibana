@@ -41,7 +41,7 @@ export class Plugin {
     // Signals/Alerting Rules routes for
     // routes such as ${DETECTION_ENGINE_RULES_URL}
     // that have the REST endpoints of /api/detection_engine/rules
-    createRulesRoute(route);
+    createRulesRoute(core, __legacy);
     readRulesRoute(route);
     updateRulesRoute(route);
     deleteRulesRoute(route);
