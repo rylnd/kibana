@@ -5,6 +5,13 @@
  */
 
 import { Legacy } from 'kibana';
+import { PluginSetupContract as FeaturesSetupContract } from '../../../../plugins/features/server';
+import { SpacesPluginSetup } from '../../../../plugins/spaces/server';
+
+export interface PluginsSetup {
+  features: FeaturesSetupContract;
+  spaces: SpacesPluginSetup;
+}
 
 export interface ServerFacade {
   config: Legacy.Server['config'];

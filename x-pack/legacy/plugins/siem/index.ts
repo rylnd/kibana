@@ -11,7 +11,6 @@ import { Root } from 'joi';
 
 import { PluginInitializerContext } from 'src/core/server';
 import { plugin } from './server';
-import { DetectionEngine } from './server/plugins';
 import { savedObjectMappings } from './server/saved_objects';
 
 import {
@@ -152,9 +151,7 @@ export const siem = (kibana: any) => {
       };
 
       // @ts-ignore-next-line: setup.plugins is too loosely typed
-      plugin(initializerContext).setup(setup.core, setup.plugins);
-
-      new DetectionEngine(initializerContext).setup(setup.core, setup.plugins, serverFacade);
+      plugin(initializerContext).setup(setup.core, setup.plugins, serverFacade);
     },
     config(Joi: Root) {
       return Joi.object()

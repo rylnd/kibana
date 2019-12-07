@@ -5,7 +5,7 @@
  */
 
 import { PluginInitializerContext, Logger, CoreSetup } from 'src/core/server';
-import { ServerFacade } from '../../types';
+import { PluginsSetup, ServerFacade } from '../../types';
 import { rulesAlertType } from './alerts/rules_alert_type';
 import { isAlertExecutor } from './alerts/types';
 import { createIndexRoute } from './routes/index/create_index_route';
@@ -27,7 +27,7 @@ export class Plugin {
     this.logger = context.logger.get('plugins', 'siem', this.name);
   }
 
-  public setup(core: CoreSetup, plugins: {}, __legacy: ServerFacade) {
+  public setup(core: CoreSetup, plugins: PluginsSetup, __legacy: ServerFacade) {
     const version = this.context.env.packageInfo.version;
 
     if (__legacy.plugins.alerting != null) {

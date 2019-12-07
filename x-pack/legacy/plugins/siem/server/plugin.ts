@@ -6,8 +6,9 @@
 
 import { i18n } from '@kbn/i18n';
 import { CoreSetup, PluginInitializerContext, Logger } from 'src/core/server';
-import { PluginSetupContract as FeaturesSetupContract } from '../../../../plugins/features/server';
 import { initServer } from './init_server';
+import { DetectionEngine } from './plugins';
+import { PluginsSetup, ServerFacade } from './types';
 import { compose } from './lib/compose/kibana';
 import {
   noteSavedObjectType,
@@ -15,23 +16,21 @@ import {
   timelineSavedObjectType,
 } from './saved_objects';
 
-export interface PluginsSetup {
-  features: FeaturesSetupContract;
-}
-
 export class Plugin {
   readonly name = 'siem';
   private readonly logger: Logger;
   private context: PluginInitializerContext;
+  private detectionEngine: DetectionEngine;
 
   constructor(context: PluginInitializerContext) {
     this.context = context;
     this.logger = context.logger.get('plugins', this.name);
+    this.detectionEngine = new DetectionEngine(context);
 
     this.logger.debug('Shim plugin initialized');
   }
 
-  public setup(core: CoreSetup, plugins: PluginsSetup) {
+  public setup(core: CoreSetup, plugins: PluginsSetup, __legacy: ServerFacade) {
     this.logger.debug('Shim plugin setup');
 
     plugins.features.registerFeature({
@@ -67,6 +66,8 @@ export class Plugin {
         },
       },
     });
+
+    this.detectionEngine.setup(core, plugins, __legacy);
 
     const libs = compose(core, this.context.env);
     initServer(libs);
