@@ -53,7 +53,6 @@ export const createMockServer = (config: Record<string, string> = defaultConfig)
     })),
   };
   server.decorate('request', 'getAlertsClient', () => alertsClient);
-  server.decorate('request', 'getBasePath', () => '/s/default');
   server.decorate('request', 'getActionsClient', () => actionsClient);
   server.plugins.elasticsearch = (elasticsearch as unknown) as ElasticsearchPlugin;
 
@@ -70,7 +69,6 @@ export const createMockServerWithoutAlertClientDecoration = (
   serverWithoutAlertClient.config = () => createMockKibanaConfig(config);
 
   const actionsClient = actionsClientMock.create();
-  serverWithoutAlertClient.decorate('request', 'getBasePath', () => '/s/default');
   serverWithoutAlertClient.decorate('request', 'getActionsClient', () => actionsClient);
 
   return { serverWithoutAlertClient, actionsClient };
@@ -86,7 +84,6 @@ export const createMockServerWithoutActionClientDecoration = (
   serverWithoutActionClient.config = () => createMockKibanaConfig(config);
 
   const alertsClient = alertsClientMock.create();
-  serverWithoutActionClient.decorate('request', 'getBasePath', () => '/s/default');
   serverWithoutActionClient.decorate('request', 'getAlertsClient', () => alertsClient);
 
   return { serverWithoutActionClient, alertsClient };
