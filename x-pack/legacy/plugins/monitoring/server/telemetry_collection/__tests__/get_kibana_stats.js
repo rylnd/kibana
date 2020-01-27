@@ -217,6 +217,55 @@ describe('Get Kibana Stats', () => {
           expect(getUsageStats(rawStats)).to.eql(expected);
         });
 
+        it('sums plugin usage across indices', () => {
+          const rawStats = {
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    cluster_uuid: 'clusterone',
+                    kibana_stats: {
+                      kibana: { version: '7.0.0-alpha1-test03' },
+                      usage: {
+                        my_plugin: { 'kibana-user_agent': { key1: 1, key2: 1 } },
+                        index: '.kibana-test-01',
+                      },
+                    },
+                  },
+                },
+                {
+                  _source: {
+                    cluster_uuid: 'clusterone',
+                    kibana_stats: {
+                      kibana: { version: '7.0.0-alpha1-test04' },
+                      usage: {
+                        my_plugin: { 'kibana-user_agent': { key1: 1, key2: 1 } },
+                        index: '.kibana-test-02',
+                      },
+                    },
+                  },
+                },
+                {
+                  _source: {
+                    cluster_uuid: 'clusterone',
+                    kibana_stats: {
+                      kibana: { version: '7.0.0-alpha1-test05' },
+                      usage: {
+                        my_plugin: { 'kibana-user_agent': { key1: 1, key3: 1 } },
+                        index: '.kibana-test-03',
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          };
+
+          expect(getUsageStats(rawStats).clusterone.plugins.my_plugin).to.equal({
+            'kibana-user_agent': { key1: 3, key2: 2, key3: 1 },
+          });
+        });
+
         it('with all actively used instances', () => {
           const rawStats = {
             hits: {
