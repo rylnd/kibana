@@ -28,6 +28,7 @@ interface SearchAfterAndBulkCreateParams {
   pageSize: number;
   filter: unknown;
   tags: string[];
+  index: string[];
 }
 
 // search_after through documents and re-index using bulk endpoint.
@@ -48,16 +49,12 @@ export const searchAfterAndBulkCreate = async ({
   enabled,
   pageSize,
   tags,
+  index,
 }: SearchAfterAndBulkCreateParams): Promise<boolean> => {
   if (someResult.hits.hits.length === 0) {
     return true;
   }
-  const { index, from, to } = ruleParams;
-  if (index == null) {
-    throw new Error(
-      `Attempted to bulk create signals, but rule id: ${id}, name: ${name}, signals index: ${signalsIndex} has no index pattern`
-    );
-  }
+  const { from, to } = ruleParams;
 
   logger.debug('[+] starting bulk insertion');
   await singleBulkCreate({
