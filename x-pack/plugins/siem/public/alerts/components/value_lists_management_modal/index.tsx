@@ -27,6 +27,8 @@ import {
   errorToToaster,
 } from '../../../common/components/toasters';
 import { importList } from '../../containers/lists/api';
+import { ValueListsTable } from './value_lists_table';
+import { useLists } from '../../containers/lists/use_lists';
 
 interface ValueListsModalProps {
   onClose: () => void;
@@ -73,12 +75,13 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
     },
     [importList, displaySuccessToast, errorToToaster, cancelImport]
   );
+  const [valueLists, listsLoading] = useLists();
 
   return (
     <>
       {showModal && (
         <EuiOverlayMask>
-          <EuiModal onClose={handleClose} maxWidth={'750px'}>
+          <EuiModal onClose={handleClose} maxWidth={750}>
             <EuiModalHeader>
               <EuiModalHeaderTitle>{i18n.MODAL_TITLE}</EuiModalHeaderTitle>
             </EuiModalHeader>
@@ -97,7 +100,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
                 isLoading={isImporting}
               />
               {isImporting && <EuiButton onClick={cancelImport}>{i18n.CANCEL_BUTTON}</EuiButton>}
-              <EuiSpacer size="s" />
+              <ValueListsTable items={valueLists} loading={listsLoading} />
             </EuiModalBody>
 
             <EuiModalFooter>

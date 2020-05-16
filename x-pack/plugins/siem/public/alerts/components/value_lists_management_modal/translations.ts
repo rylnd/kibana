@@ -35,3 +35,21 @@ export const uploadSuccessMessage = (fileName: string) =>
     defaultMessage: 'Value list {fileName} was uploaded successfully',
     values: { fileName },
   });
+
+export const COLUMN_FILE_NAME = i18n.translate('xpack.siem.lists.valueListsTable.fileNameColumn', {
+  defaultMessage: 'Filename',
+});
+
+export const COLUMN_UPLOAD_DATE = i18n.translate(
+  'xpack.siem.lists.valueListsTable.uploadDateColumn',
+  {
+    defaultMessage: 'Upload Date',
+  }
+);
+
+export const COLUMN_CREATED_BY = i18n.translate(
+  'xpack.siem.lists.valueListsTable.createdByColumn',
+  {
+    defaultMessage: 'Created by',
+  }
+);

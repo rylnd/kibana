@@ -5,11 +5,13 @@
  */
 
 import { Type as ListType } from '../../../../../lists/common/schemas';
+import { getListResponseMock } from '../../../../../lists/common/schemas/response/list_schema.mock';
 import { LIST_URL, LIST_ITEM_URL } from '../../../../../lists/common/constants';
 import { KibanaServices } from '../../../common/lib/kibana';
 import { ImportListResponse } from './types';
 
 export const getLists = async ({ signal }: { signal: AbortSignal }) => {
+  return [getListResponseMock(), getListResponseMock()];
   return KibanaServices.get().http.fetch(LIST_URL, {
     method: 'GET',
     query: {},

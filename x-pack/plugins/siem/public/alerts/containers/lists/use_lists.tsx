@@ -5,15 +5,13 @@
  */
 
 import { useEffect, useState } from 'react';
+
+import { ListSchema } from '../../../../../lists/common/schemas/response';
 import { getLists } from './api';
 
-interface List {
-  thing: string;
-}
-
-export const useLists = () => {
+export const useLists = (): [ListSchema[], boolean] => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lists, setLists] = useState<List[]>([]);
+  const [lists, setLists] = useState<ListSchema[]>([]);
 
   useEffect(() => {
     const fetchLists = async () => {
