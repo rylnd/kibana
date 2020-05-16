@@ -34,21 +34,25 @@ interface ValueListsModalProps {
 }
 
 export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModalProps) => {
-  const importTask = useRef(new AbortController());
-  const cancelImport = useCallback(() => importTask.current.abort(), [importTask]);
-  const [isImporting, setIsImporting] = useState(false);
   const [, dispatchToaster] = useStateToaster();
+  const [isImporting, setIsImporting] = useState(false);
+  const importTask = useRef(new AbortController());
 
-  const handleClose = useCallback(() => {
+  const cancelImport = useCallback(() => {
     setIsImporting(false);
+    importTask.current.abort();
+  }, [setIsImporting]);
+  const handleClose = useCallback(() => {
+    cancelImport();
     onClose();
-  }, [setIsImporting, onClose]);
+  }, [cancelImport, onClose]);
 
   const uploadList = useCallback(
     async (files: FileList | null) => {
       if (files != null && files.length > 0) {
         try {
           setIsImporting(true);
+          importTask.current = new AbortController();
           const response = await importList({
             file: files[0],
             listId: undefined,
@@ -60,14 +64,14 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
           setIsImporting(false);
           // TODO: refresh table
         } catch (error) {
-          errorToToaster({ title: i18n.UPLOAD_ERROR, error, dispatchToaster });
           setIsImporting(false);
+          if (error.name !== 'AbortError') {
+            errorToToaster({ title: i18n.UPLOAD_ERROR, error, dispatchToaster });
+          }
         }
       }
-
-      return cancelImport;
     },
-    [importList, displaySuccessToast, errorToToaster]
+    [importList, displaySuccessToast, errorToToaster, cancelImport]
   );
 
   return (
