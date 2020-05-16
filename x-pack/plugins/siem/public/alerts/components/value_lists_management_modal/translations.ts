@@ -53,3 +53,35 @@ export const COLUMN_CREATED_BY = i18n.translate(
     defaultMessage: 'Created by',
   }
 );
+
+export const COLUMN_ACTIONS = i18n.translate('xpack.siem.lists.valueListsTable.actionsColumn', {
+  defaultMessage: 'Actions',
+});
+
+export const ACTION_EXPORT_NAME = i18n.translate(
+  'xpack.siem.lists.valueListsTable.exportActionName',
+  {
+    defaultMessage: 'Export',
+  }
+);
+
+export const ACTION_EXPORT_DESCRIPTION = i18n.translate(
+  'xpack.siem.lists.valueListsTable.exportActionDescription',
+  {
+    defaultMessage: 'Export value list',
+  }
+);
+
+export const ACTION_DELETE_NAME = i18n.translate(
+  'xpack.siem.lists.valueListsTable.deleteActionName',
+  {
+    defaultMessage: 'Remove',
+  }
+);
+
+export const ACTION_DELETE_DESCRIPTION = i18n.translate(
+  'xpack.siem.lists.valueListsTable.deleteActionDescription',
+  {
+    defaultMessage: 'Remove value list',
+  }
+);

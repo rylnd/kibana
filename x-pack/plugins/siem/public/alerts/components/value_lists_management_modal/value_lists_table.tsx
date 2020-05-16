@@ -10,7 +10,9 @@ import { EuiBasicTable, EuiBasicTableColumn } from '@elastic/eui';
 import { ListSchema } from '../../../../../lists/common/schemas/response';
 import * as i18n from './translations';
 
-const columns: Array<EuiBasicTableColumn<ListSchema>> = [
+type Column = EuiBasicTableColumn<ListSchema>;
+
+const staticColumns: Column[] = [
   {
     field: 'name',
     name: i18n.COLUMN_FILE_NAME,
@@ -28,6 +30,32 @@ const columns: Array<EuiBasicTableColumn<ListSchema>> = [
   },
 ];
 
+const buildColumns = (items: ListSchema[]): Column[] => [
+  ...staticColumns,
+  {
+    name: i18n.COLUMN_ACTIONS,
+    actions: [
+      {
+        name: i18n.ACTION_EXPORT_NAME,
+        description: i18n.ACTION_EXPORT_DESCRIPTION,
+        icon: 'exportAction',
+        type: 'icon',
+        onClick: () => {},
+        'data-test-subj': 'action-export-value-list',
+      },
+      {
+        name: i18n.ACTION_DELETE_NAME,
+        description: i18n.ACTION_DELETE_DESCRIPTION,
+        icon: 'trash',
+        type: 'icon',
+        onClick: () => {},
+        'data-test-subj': 'action-delete-value-list',
+      },
+    ],
+  },
+];
+
 export const ValueListsTable = ({ items, loading }: { items: any[]; loading: boolean }) => {
+  const columns = buildColumns(items);
   return <EuiBasicTable columns={columns} items={items} loading={loading} />;
 };
