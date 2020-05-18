@@ -6,4 +6,4 @@
 
 import { ListSchema } from '../../../../../lists/common/schemas/response';
 
-export type ImportListResponse = ListSchema;
+export type ListResponse = ListSchema;
