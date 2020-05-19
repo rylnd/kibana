@@ -73,7 +73,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
         }
       }
     },
-    [importList, displaySuccessToast, errorToToaster, cancelImport]
+    [importList, displaySuccessToast, errorToToaster]
   );
   const [valueLists, listsLoading] = useLists();
 
