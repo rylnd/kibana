@@ -12,11 +12,11 @@ import { ListResponse } from './types';
 
 export const getLists = async ({ signal }: { signal: AbortSignal }) => {
   return [getListResponseMock(), getListResponseMock()];
-  return KibanaServices.get().http.fetch(LIST_URL, {
-    method: 'GET',
-    query: {},
-    signal,
-  });
+  // return KibanaServices.get().http.fetch(LIST_URL, {
+  //   method: 'GET',
+  //   query: {},
+  //   signal,
+  // });
 };
 
 export const importList = async ({
