@@ -18,8 +18,8 @@ export const useLists = (): [ListSchema[], boolean, () => void] => {
   useEffect(() => {
     const fetchLists = async () => {
       if (needsFetch) {
-        const abortCtrl = new AbortController();
         try {
+          const abortCtrl = new AbortController();
           setIsLoading(true);
           const listsResponse = await getLists({ signal: abortCtrl.signal });
           setLists(listsResponse);

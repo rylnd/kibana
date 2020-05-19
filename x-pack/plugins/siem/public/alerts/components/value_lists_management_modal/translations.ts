@@ -23,7 +23,7 @@ export const CLOSE_BUTTON = i18n.translate('xpack.siem.lists.closeValueListsModa
 });
 
 export const CANCEL_BUTTON = i18n.translate('xpack.siem.lists.cancelValueListsUploadTitle', {
-  defaultMessage: 'Cancel',
+  defaultMessage: 'Cancel upload',
 });
 
 export const UPLOAD_ERROR = i18n.translate('xpack.siem.lists.valueListsUploadError', {
@@ -85,3 +85,18 @@ export const ACTION_DELETE_DESCRIPTION = i18n.translate(
     defaultMessage: 'Remove value list',
   }
 );
+
+export const LIST_TYPES_RADIO_LABEL = i18n.translate(
+  'xpack.siem.lists.valueListsForm.listTypesRadioLabel',
+  {
+    defaultMessage: 'Type of value list',
+  }
+);
+
+export const IP_RADIO = i18n.translate('xpack.siem.lists.valueListsForm.ipRadioLabel', {
+  defaultMessage: 'IP addresses',
+});
+
+export const KEYWORDS_RADIO = i18n.translate('xpack.siem.lists.valueListsForm.keywordsRadioLabel', {
+  defaultMessage: 'Keywords',
+});
