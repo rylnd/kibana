@@ -65,7 +65,7 @@ export const exportList = async ({
 }): Promise<Blob> => {
   return KibanaServices.get().http.fetch<Blob>(`${LIST_ITEM_URL}/_export`, {
     method: 'POST',
-    query: { listId: id },
+    query: { list_id: id },
     signal,
   });
 };
