@@ -7,8 +7,6 @@
 import React, { useCallback, useState, useRef } from 'react';
 import {
   EuiButton,
-  EuiButtonEmpty,
-  // @ts-ignore no-exported-member
   EuiFilePicker,
   EuiModal,
   EuiModalBody,
@@ -39,6 +37,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
   const [, dispatchToaster] = useStateToaster();
   const [isImporting, setIsImporting] = useState(false);
   const importTask = useRef(new AbortController());
+  const [valueLists, listsLoading, refreshList] = useLists();
 
   const cleanupImport = useCallback(() => {
     setIsImporting(false);
@@ -48,7 +47,6 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
     cleanupImport();
     onClose();
   }, [cleanupImport, onClose]);
-
   const uploadList = useCallback(
     async (files: FileList | null) => {
       if (files != null && files.length > 0) {
@@ -64,7 +62,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
 
           displaySuccessToast(i18n.uploadSuccessMessage(response.name), dispatchToaster);
           setIsImporting(false);
-          // TODO: refresh table
+          refreshList();
         } catch (error) {
           setIsImporting(false);
           if (error.name !== 'AbortError') {
@@ -75,7 +73,6 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
     },
     [importList, displaySuccessToast, errorToToaster]
   );
-  const [valueLists, listsLoading] = useLists();
 
   return (
     <>
@@ -90,7 +87,6 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
               <EuiText size="s">
                 <h4>{i18n.MODAL_DESCRIPTION}</h4>
               </EuiText>
-
               <EuiSpacer size="s" />
               <EuiFilePicker
                 id="value-list-file-picker"
@@ -100,7 +96,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
                 isLoading={isImporting}
               />
               {isImporting && <EuiButton onClick={cleanupImport}>{i18n.CANCEL_BUTTON}</EuiButton>}
-              <ValueListsTable items={valueLists} loading={listsLoading} />
+              <ValueListsTable items={valueLists} loading={listsLoading} onChange={refreshList} />
             </EuiModalBody>
 
             <EuiModalFooter>

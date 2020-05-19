@@ -46,7 +46,7 @@ export const deleteList = async ({
   id,
   signal,
 }: {
-  id: number;
+  id: string;
   signal: AbortSignal;
 }): Promise<ListResponse> => {
   return KibanaServices.get().http.fetch<ListResponse>(LIST_URL, {
@@ -60,7 +60,7 @@ export const exportList = async ({
   id,
   signal,
 }: {
-  id: number;
+  id: string;
   signal: AbortSignal;
 }): Promise<Blob> => {
   return KibanaServices.get().http.fetch<Blob>(`${LIST_ITEM_URL}/_export`, {
