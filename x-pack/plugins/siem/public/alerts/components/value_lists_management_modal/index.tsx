@@ -40,14 +40,14 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
   const [isImporting, setIsImporting] = useState(false);
   const importTask = useRef(new AbortController());
 
-  const cancelImport = useCallback(() => {
+  const cleanupImport = useCallback(() => {
     setIsImporting(false);
     importTask.current.abort();
   }, [setIsImporting]);
   const handleClose = useCallback(() => {
-    cancelImport();
+    cleanupImport();
     onClose();
-  }, [cancelImport, onClose]);
+  }, [cleanupImport, onClose]);
 
   const uploadList = useCallback(
     async (files: FileList | null) => {
@@ -99,7 +99,7 @@ export const ValueListsModalComponent = ({ onClose, showModal }: ValueListsModal
                 fullWidth={true}
                 isLoading={isImporting}
               />
-              {isImporting && <EuiButton onClick={cancelImport}>{i18n.CANCEL_BUTTON}</EuiButton>}
+              {isImporting && <EuiButton onClick={cleanupImport}>{i18n.CANCEL_BUTTON}</EuiButton>}
               <ValueListsTable items={valueLists} loading={listsLoading} />
             </EuiModalBody>
 
