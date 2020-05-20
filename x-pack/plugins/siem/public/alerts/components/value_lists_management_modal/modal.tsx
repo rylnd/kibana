@@ -17,6 +17,11 @@ import {
 } from '@elastic/eui';
 
 import { Type as ListType } from '../../../../../lists/common/schemas';
+import {
+  displaySuccessToast,
+  useStateToaster,
+  errorToToaster,
+} from '../../../common/components/toasters';
 import { exportList, deleteList, importList } from '../../containers/lists/api';
 import { useLists } from '../../containers/lists/use_lists';
 import * as i18n from './translations';
@@ -35,6 +40,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   const [isImporting, setIsImporting] = useState(false);
   const importTask = useRef(new AbortController());
   const [lists, listsLoading, refreshLists] = useLists();
+  const [, dispatchToaster] = useStateToaster();
 
   const handleCancel = useCallback(() => {
     setIsImporting(false);
@@ -57,15 +63,13 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
             signal: importTask.current.signal,
           });
 
-          // TODO: success callout with response.name
-          // displaySuccessToast(i18n.uploadSuccessMessage(response.name), dispatchToaster);
+          displaySuccessToast(i18n.uploadSuccessMessage(response.name), dispatchToaster);
           setIsImporting(false);
           refreshLists();
         } catch (error) {
           setIsImporting(false);
           if (error.name !== 'AbortError') {
-            // TODO: error callout
-            // errorToToaster({ title: i18n.UPLOAD_ERROR, error, dispatchToaster });
+            errorToToaster({ title: i18n.UPLOAD_ERROR, error, dispatchToaster });
           }
         }
       }
