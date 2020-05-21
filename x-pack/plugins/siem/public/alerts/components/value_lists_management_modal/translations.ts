@@ -26,13 +26,17 @@ export const CANCEL_BUTTON = i18n.translate('xpack.siem.lists.cancelValueListsUp
   defaultMessage: 'Cancel upload',
 });
 
+export const UPLOAD_SUCCESS = i18n.translate('xpack.siem.lists.valueListsUploadSuccess', {
+  defaultMessage: 'Value list uploaded',
+});
+
 export const UPLOAD_ERROR = i18n.translate('xpack.siem.lists.valueListsUploadError', {
   defaultMessage: 'There was an error uploading the value list.',
 });
 
 export const uploadSuccessMessage = (fileName: string) =>
   i18n.translate('xpack.siem.lists.valueListsUploadSuccess', {
-    defaultMessage: 'Value list {fileName} was uploaded successfully',
+    defaultMessage: "Value list '{fileName}' was uploaded",
     values: { fileName },
   });
 

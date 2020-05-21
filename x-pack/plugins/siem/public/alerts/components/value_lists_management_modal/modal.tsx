@@ -17,11 +17,7 @@ import {
 } from '@elastic/eui';
 
 import { Type as ListType } from '../../../../../lists/common/schemas';
-import {
-  displaySuccessToast,
-  useStateToaster,
-  errorToToaster,
-} from '../../../common/components/toasters';
+import { useToasts } from '../../../common/lib/kibana';
 import { exportList, deleteList, importList } from '../../containers/lists/api';
 import { useLists } from '../../containers/lists/use_lists';
 import * as i18n from './translations';
@@ -40,7 +36,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   const [isImporting, setIsImporting] = useState(false);
   const importTask = useRef(new AbortController());
   const [lists, listsLoading, refreshLists] = useLists();
-  const [, dispatchToaster] = useStateToaster();
+  const toasts = useToasts();
 
   const handleCancel = useCallback(() => {
     setIsImporting(false);
@@ -63,13 +59,16 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
             signal: importTask.current.signal,
           });
 
-          displaySuccessToast(i18n.uploadSuccessMessage(response.name), dispatchToaster);
+          toasts.addSuccess({
+            text: i18n.uploadSuccessMessage(response.name),
+            title: i18n.UPLOAD_SUCCESS,
+          });
           setIsImporting(false);
           refreshLists();
         } catch (error) {
           setIsImporting(false);
           if (error.name !== 'AbortError') {
-            errorToToaster({ title: i18n.UPLOAD_ERROR, error, dispatchToaster });
+            toasts.addError(error, { title: i18n.UPLOAD_ERROR });
           }
         }
       }
