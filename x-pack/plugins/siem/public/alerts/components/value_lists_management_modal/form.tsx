@@ -43,12 +43,13 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSucce
   // EuiRadioGroup's onChange only infers 'string' from our options
   const handleRadioChange = useCallback((t: string) => setType(t as ListType), [setType]);
 
-  const resetFilePicker = useCallback(() => {
+  const resetForm = useCallback(() => {
     if (filePickerRef.current?.fileInput) {
       filePickerRef.current.fileInput.value = '';
       filePickerRef.current.handleChange();
     }
-  }, []);
+    setType('keyword');
+  }, [setType]);
 
   const handleCancel = useCallback(() => {
     setImportPending(false);
@@ -62,10 +63,10 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSucce
         title: i18n.UPLOAD_SUCCESS,
       });
       setImportPending(false);
-      resetFilePicker();
+      resetForm();
       onSuccess(response);
     },
-    [toasts, resetFilePicker, setImportPending, onSuccess]
+    [toasts, resetForm, setImportPending, onSuccess]
   );
   const handleError = useCallback(
     (error: Error) => {
