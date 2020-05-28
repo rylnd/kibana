@@ -5,15 +5,25 @@
  */
 
 import React from 'react';
-import { EuiBasicTable, EuiBasicTableColumn } from '@elastic/eui';
+import { EuiBasicTable, EuiBasicTableProps, EuiText, EuiPanel } from '@elastic/eui';
 
 import { ListSchema } from '../../../../../lists/common/schemas/response';
 import * as i18n from './translations';
 
-export type Column = EuiBasicTableColumn<ListSchema>;
-export type ActionCallback = (item: ListSchema) => void;
+type TableProps = EuiBasicTableProps<ListSchema>;
+type ActionCallback = (item: ListSchema) => void;
 
-export const buildColumns = (onExport: ActionCallback, onDelete: ActionCallback): Column[] => [
+export interface ValueListsTableProps {
+  lists: TableProps['items'];
+  loading: boolean;
+  onExport: ActionCallback;
+  onDelete: ActionCallback;
+}
+
+const buildColumns = (
+  onExport: ActionCallback,
+  onDelete: ActionCallback
+): TableProps['columns'] => [
   {
     field: 'name',
     name: i18n.COLUMN_FILE_NAME,
@@ -52,13 +62,6 @@ export const buildColumns = (onExport: ActionCallback, onDelete: ActionCallback)
   },
 ];
 
-export interface ValueListsTableProps {
-  lists: ListSchema[];
-  loading: boolean;
-  onExport: ActionCallback;
-  onDelete: ActionCallback;
-}
-
 export const ValueListsTableComponent: React.FC<ValueListsTableProps> = ({
   lists,
   loading,
@@ -66,7 +69,14 @@ export const ValueListsTableComponent: React.FC<ValueListsTableProps> = ({
   onDelete,
 }) => {
   const columns = buildColumns(onExport, onDelete);
-  return <EuiBasicTable columns={columns} items={lists} loading={loading} />;
+  return (
+    <EuiPanel>
+      <EuiText size="s">
+        <h2>{i18n.TABLE_TITLE}</h2>
+      </EuiText>
+      <EuiBasicTable columns={columns} items={lists} loading={loading} />
+    </EuiPanel>
+  );
 };
 
 ValueListsTableComponent.displayName = 'ValueListsTableComponent';

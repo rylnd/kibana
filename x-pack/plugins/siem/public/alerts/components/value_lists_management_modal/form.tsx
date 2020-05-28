@@ -4,12 +4,30 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 import React, { useCallback, useState, ReactNode, useEffect, useRef } from 'react';
-import { EuiButton, EuiForm, EuiFormRow, EuiFilePicker, EuiRadioGroup } from '@elastic/eui';
+import styled from 'styled-components';
+import {
+  EuiButton,
+  EuiButtonEmpty,
+  EuiForm,
+  EuiFormRow,
+  EuiFilePicker,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiRadioGroup,
+} from '@elastic/eui';
 
 import { Type as ListType } from '../../../../../lists/common/schemas';
 import { importList } from '../../containers/lists/api';
 import { ListResponse } from '../../containers/lists/types';
 import * as i18n from './translations';
+
+const InlineRadioGroup = styled(EuiRadioGroup)`
+  display: flex;
+
+  .euiRadioGroup__item + .euiRadioGroup__item {
+    margin: 0 0 0 12px;
+  }
+`;
 
 interface ListTypeOptions {
   id: ListType;
@@ -49,6 +67,7 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError
       filePickerRef.current.fileInput.value = '';
       filePickerRef.current.handleChange();
     }
+    setFiles(null);
     setType(defaultListType);
   }, [setType]);
 
@@ -98,7 +117,7 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError
 
   return (
     <EuiForm>
-      <EuiFormRow fullWidth>
+      <EuiFormRow label={i18n.FILE_PICKER_LABEL} fullWidth>
         <EuiFilePicker
           id="value-list-file-picker"
           initialPromptText={i18n.FILE_PICKER_PROMPT}
@@ -108,22 +127,35 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError
           isLoading={importPending}
         />
       </EuiFormRow>
-      <EuiFormRow label={i18n.LIST_TYPES_RADIO_LABEL}>
-        <>
-          <EuiRadioGroup
-            options={options}
-            idSelected={type}
-            onChange={handleRadioChange}
-            name="valueListType"
-          />
-          {importPending ? (
-            <EuiButton onClick={handleCancel}>{i18n.CANCEL_BUTTON}</EuiButton>
-          ) : (
-            <EuiButton onClick={handleImport} disabled={!files?.length}>
-              {i18n.UPLOAD_BUTTON}
-            </EuiButton>
-          )}
-        </>
+      <EuiFormRow fullWidth>
+        <EuiFlexGroup>
+          <EuiFlexItem>
+            <EuiFormRow label={i18n.LIST_TYPES_RADIO_LABEL}>
+              <InlineRadioGroup
+                options={options}
+                idSelected={type}
+                onChange={handleRadioChange}
+                name="valueListType"
+              />
+            </EuiFormRow>
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiFormRow>
+              <EuiFlexGroup alignItems="flexEnd">
+                <EuiFlexItem>
+                  {importPending && (
+                    <EuiButtonEmpty onClick={handleCancel}>{i18n.CANCEL_BUTTON}</EuiButtonEmpty>
+                  )}
+                </EuiFlexItem>
+                <EuiFlexItem>
+                  <EuiButton onClick={handleImport} disabled={!files?.length || importPending}>
+                    {i18n.UPLOAD_BUTTON}
+                  </EuiButton>
+                </EuiFlexItem>
+              </EuiFlexGroup>
+            </EuiFormRow>
+          </EuiFlexItem>
+        </EuiFlexGroup>
       </EuiFormRow>
     </EuiForm>
   );

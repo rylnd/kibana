@@ -13,16 +13,16 @@ import {
   EuiModalHeader,
   EuiModalHeaderTitle,
   EuiOverlayMask,
-  EuiText,
+  EuiSpacer,
 } from '@elastic/eui';
 
 import { useToasts } from '../../../common/lib/kibana';
 import { exportList, deleteList } from '../../containers/lists/api';
+import { ListResponse } from '../../containers/lists/types';
 import { useLists } from '../../containers/lists/use_lists';
 import * as i18n from './translations';
 import { ValueListsTable } from './table';
 import { ValueListsForm } from './form';
-import { ListResponse } from '../../containers/lists/types';
 
 interface ValueListsModalProps {
   onClose: () => void;
@@ -85,10 +85,8 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
           <EuiModalHeaderTitle>{i18n.MODAL_TITLE}</EuiModalHeaderTitle>
         </EuiModalHeader>
         <EuiModalBody>
-          <EuiText size="s">
-            <h4>{i18n.MODAL_DESCRIPTION}</h4>
-          </EuiText>
           <ValueListsForm onSuccess={handleUploadSuccess} onError={handleUploadError} />
+          <EuiSpacer />
           <ValueListsTable
             lists={lists.value ?? []}
             loading={lists.loading}

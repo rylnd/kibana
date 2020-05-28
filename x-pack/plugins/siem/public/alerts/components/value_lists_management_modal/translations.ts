@@ -10,7 +10,7 @@ export const MODAL_TITLE = i18n.translate('xpack.siem.lists.uploadValueListTitle
   defaultMessage: 'Upload value lists',
 });
 
-export const MODAL_DESCRIPTION = i18n.translate('xpack.siem.lists.uploadValueListDescription', {
+export const FILE_PICKER_LABEL = i18n.translate('xpack.siem.lists.uploadValueListDescription', {
   defaultMessage: 'Upload single value lists to use while writing rules or rule exceptions.',
 });
 
@@ -93,6 +93,10 @@ export const ACTION_DELETE_DESCRIPTION = i18n.translate(
     defaultMessage: 'Remove value list',
   }
 );
+
+export const TABLE_TITLE = i18n.translate('xpack.siem.lists.valueListsTable.title', {
+  defaultMessage: 'Value lists',
+});
 
 export const LIST_TYPES_RADIO_LABEL = i18n.translate(
   'xpack.siem.lists.valueListsForm.listTypesRadioLabel',
