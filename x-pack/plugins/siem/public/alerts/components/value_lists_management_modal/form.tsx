@@ -7,7 +7,6 @@ import React, { useCallback, useState, ReactNode, useEffect, useRef } from 'reac
 import { EuiButton, EuiForm, EuiFormRow, EuiFilePicker, EuiRadioGroup } from '@elastic/eui';
 
 import { Type as ListType } from '../../../../../lists/common/schemas';
-import { useToasts } from '../../../common/lib/kibana';
 import { importList } from '../../containers/lists/api';
 import { ListResponse } from '../../containers/lists/types';
 import * as i18n from './translations';
@@ -31,15 +30,15 @@ const options: ListTypeOptions[] = [
 const defaultListType: ListType = 'keyword';
 
 export interface ValueListsFormProps {
+  onError: (error: Error) => void;
   onSuccess: (response: ListResponse) => void;
 }
 
-export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSuccess }) => {
+export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError, onSuccess }) => {
   const [files, setFiles] = useState<FileList | null>(null);
   const [type, setType] = useState<ListType>(defaultListType);
   const [importPending, setImportPending] = useState(false);
   const importTask = useRef(new AbortController());
-  const toasts = useToasts();
   const filePickerRef = useRef<EuiFilePicker | null>(null);
 
   // EuiRadioGroup's onChange only infers 'string' from our options
@@ -60,24 +59,18 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSucce
 
   const handleSuccess = useCallback(
     (response: ListResponse) => {
-      toasts.addSuccess({
-        text: i18n.uploadSuccessMessage(response.name),
-        title: i18n.UPLOAD_SUCCESS,
-      });
       setImportPending(false);
       resetForm();
       onSuccess(response);
     },
-    [toasts, resetForm, setImportPending, onSuccess]
+    [resetForm, setImportPending, onSuccess]
   );
   const handleError = useCallback(
     (error: Error) => {
       setImportPending(false);
-      if (error.name !== 'AbortError') {
-        toasts.addError(error, { title: i18n.UPLOAD_ERROR });
-      }
+      onError(error);
     },
-    [toasts, setImportPending]
+    [setImportPending]
   );
 
   const handleImport = useCallback(async () => {

@@ -16,6 +16,7 @@ import {
   EuiText,
 } from '@elastic/eui';
 
+import { useToasts } from '../../../common/lib/kibana';
 import { exportList, deleteList } from '../../containers/lists/api';
 import { useLists } from '../../containers/lists/use_lists';
 import * as i18n from './translations';
@@ -33,6 +34,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   showModal,
 }) => {
   const [lists, fetchLists] = useLists();
+  const toasts = useToasts();
 
   const handleDelete = useCallback(
     async ({ id }: { id: string }) => {
@@ -49,11 +51,23 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
     },
     [exportList]
   );
+  const handleUploadError = useCallback(
+    (error: Error) => {
+      if (error.name !== 'AbortError') {
+        toasts.addError(error, { title: i18n.UPLOAD_ERROR });
+      }
+    },
+    [toasts]
+  );
   const handleUploadSuccess = useCallback(
     (response: ListResponse) => {
+      toasts.addSuccess({
+        text: i18n.uploadSuccessMessage(response.name),
+        title: i18n.UPLOAD_SUCCESS,
+      });
       fetchLists();
     },
-    [fetchLists]
+    [fetchLists, toasts]
   );
 
   useEffect(() => {
@@ -74,7 +88,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
           <EuiText size="s">
             <h4>{i18n.MODAL_DESCRIPTION}</h4>
           </EuiText>
-          <ValueListsForm onSuccess={handleUploadSuccess} />
+          <ValueListsForm onSuccess={handleUploadSuccess} onError={handleUploadError} />
           <ValueListsTable
             lists={lists.value ?? []}
             loading={lists.loading}
