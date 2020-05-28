@@ -4,36 +4,18 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useAsyncFn } from 'react-use';
+import { AsyncFn } from 'react-use/lib/useAsyncFn';
 
 import { ListSchema } from '../../../../../lists/common/schemas/response';
 import { getLists } from './api';
 
-export const useLists = (): [ListSchema[], boolean, () => void] => {
-  const [needsFetch, setNeedsFetch] = useState<boolean>(true);
-  const refreshLists = useCallback(() => setNeedsFetch(true), [setNeedsFetch]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [lists, setLists] = useState<ListSchema[]>([]);
+export const useLists = (): AsyncFn<ListSchema[]> => {
+  const fetchLists = useCallback(() => {
+    const abortCtrl = new AbortController();
+    return getLists({ signal: abortCtrl.signal });
+  }, [getLists]);
 
-  useEffect(() => {
-    const fetchLists = async () => {
-      if (needsFetch) {
-        try {
-          const abortCtrl = new AbortController();
-          setIsLoading(true);
-          const listsResponse = await getLists({ signal: abortCtrl.signal });
-          setLists(listsResponse);
-          setIsLoading(false);
-          setNeedsFetch(false);
-        } catch (e) {
-          setIsLoading(false);
-          setNeedsFetch(false);
-        }
-      }
-    };
-
-    fetchLists();
-  }, [needsFetch]);
-
-  return [lists, isLoading, refreshLists];
+  return useAsyncFn(fetchLists);
 };

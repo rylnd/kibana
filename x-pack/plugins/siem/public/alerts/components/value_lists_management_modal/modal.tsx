@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   EuiButton,
   EuiModal,
@@ -16,13 +16,12 @@ import {
   EuiText,
 } from '@elastic/eui';
 
-import { Type as ListType } from '../../../../../lists/common/schemas';
-import { useToasts } from '../../../common/lib/kibana';
-import { exportList, deleteList, importList } from '../../containers/lists/api';
+import { exportList, deleteList } from '../../containers/lists/api';
 import { useLists } from '../../containers/lists/use_lists';
 import * as i18n from './translations';
 import { ValueListsTable } from './table';
 import { ValueListsForm } from './form';
+import { ListResponse } from '../../containers/lists/types';
 
 interface ValueListsModalProps {
   onClose: () => void;
@@ -33,55 +32,15 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   onClose,
   showModal,
 }) => {
-  const [isImporting, setIsImporting] = useState(false);
-  const importTask = useRef(new AbortController());
-  const [lists, listsLoading, refreshLists] = useLists();
-  const toasts = useToasts();
+  const [lists, fetchLists] = useLists();
 
-  const handleCancel = useCallback(() => {
-    setIsImporting(false);
-    importTask.current.abort();
-  }, [setIsImporting]);
-  const handleClose = useCallback(() => {
-    handleCancel();
-    onClose();
-  }, [handleCancel, onClose]);
-  const handleImport = useCallback(
-    async ({ files, type }: { files: FileList | null; type: ListType }) => {
-      if (files != null && files.length > 0) {
-        try {
-          setIsImporting(true);
-          importTask.current = new AbortController();
-          const response = await importList({
-            file: files[0],
-            listId: undefined,
-            type,
-            signal: importTask.current.signal,
-          });
-
-          toasts.addSuccess({
-            text: i18n.uploadSuccessMessage(response.name),
-            title: i18n.UPLOAD_SUCCESS,
-          });
-          setIsImporting(false);
-          refreshLists();
-        } catch (error) {
-          setIsImporting(false);
-          if (error.name !== 'AbortError') {
-            toasts.addError(error, { title: i18n.UPLOAD_ERROR });
-          }
-        }
-      }
-    },
-    [importList, refreshLists, setIsImporting]
-  );
   const handleDelete = useCallback(
     async ({ id }: { id: string }) => {
       const deleteTask = new AbortController();
       await deleteList({ id, signal: deleteTask.signal });
-      refreshLists();
+      fetchLists();
     },
-    [deleteList, refreshLists]
+    [deleteList, fetchLists]
   );
   const handleExport = useCallback(
     async ({ id }: { id: string }) => {
@@ -90,6 +49,16 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
     },
     [exportList]
   );
+  const handleUploadSuccess = useCallback(
+    (response: ListResponse) => {
+      fetchLists();
+    },
+    [fetchLists]
+  );
+
+  useEffect(() => {
+    fetchLists();
+  }, []);
 
   if (!showModal) {
     return null;
@@ -97,27 +66,24 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
 
   return (
     <EuiOverlayMask>
-      <EuiModal onClose={handleClose} maxWidth={750}>
+      <EuiModal onClose={onClose} maxWidth={750}>
         <EuiModalHeader>
           <EuiModalHeaderTitle>{i18n.MODAL_TITLE}</EuiModalHeaderTitle>
         </EuiModalHeader>
-
         <EuiModalBody>
           <EuiText size="s">
             <h4>{i18n.MODAL_DESCRIPTION}</h4>
           </EuiText>
-          <ValueListsForm onChange={handleImport} loading={isImporting} />
-          {isImporting && <EuiButton onClick={handleCancel}>{i18n.CANCEL_BUTTON}</EuiButton>}
+          <ValueListsForm onSuccess={handleUploadSuccess} />
           <ValueListsTable
-            lists={lists}
-            loading={listsLoading}
+            lists={lists.value ?? []}
+            loading={lists.loading}
             onDelete={handleDelete}
             onExport={handleExport}
           />
         </EuiModalBody>
-
         <EuiModalFooter>
-          <EuiButton onClick={handleClose}>{i18n.CLOSE_BUTTON}</EuiButton>
+          <EuiButton onClick={onClose}>{i18n.CLOSE_BUTTON}</EuiButton>
         </EuiModalFooter>
       </EuiModal>
     </EuiOverlayMask>
