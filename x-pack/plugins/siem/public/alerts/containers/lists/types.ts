@@ -7,3 +7,11 @@
 import { ListSchema } from '../../../../../lists/common/schemas/response';
 
 export type ListResponse = ListSchema;
+
+export interface GetListsResponse {
+  cursor: string;
+  data: ListSchema[];
+  page: number;
+  per_page: number;
+  total: number;
+}

@@ -12,9 +12,10 @@ import { ListSchema } from '../../../../../lists/common/schemas/response';
 import { getLists } from './api';
 
 export const useLists = (): AsyncFn<ListSchema[]> => {
-  const fetchLists = useCallback(() => {
+  const fetchLists = useCallback(async () => {
     const abortCtrl = new AbortController();
-    return getLists({ signal: abortCtrl.signal });
+    const response = await getLists({ signal: abortCtrl.signal });
+    return response.data;
   }, [getLists]);
 
   return useAsyncFn(fetchLists);
