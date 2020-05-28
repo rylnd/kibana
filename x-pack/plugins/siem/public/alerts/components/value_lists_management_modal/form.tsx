@@ -28,13 +28,15 @@ const options: ListTypeOptions[] = [
   },
 ];
 
+const defaultListType: ListType = 'keyword';
+
 export interface ValueListsFormProps {
   onSuccess: (response: ListResponse) => void;
 }
 
 export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSuccess }) => {
   const [files, setFiles] = useState<FileList | null>(null);
-  const [type, setType] = useState<ListType>('keyword');
+  const [type, setType] = useState<ListType>(defaultListType);
   const [importPending, setImportPending] = useState(false);
   const importTask = useRef(new AbortController());
   const toasts = useToasts();
@@ -48,7 +50,7 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onSucce
       filePickerRef.current.fileInput.value = '';
       filePickerRef.current.handleChange();
     }
-    setType('keyword');
+    setType(defaultListType);
   }, [setType]);
 
   const handleCancel = useCallback(() => {
