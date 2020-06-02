@@ -16,8 +16,10 @@ type ActionCallback = (item: ListSchema) => void;
 export interface ValueListsTableProps {
   lists: TableProps['items'];
   loading: boolean;
+  onChange: TableProps['onChange'];
   onExport: ActionCallback;
   onDelete: ActionCallback;
+  pagination: Exclude<TableProps['pagination'], undefined>;
 }
 
 const buildColumns = (
@@ -65,8 +67,10 @@ const buildColumns = (
 export const ValueListsTableComponent: React.FC<ValueListsTableProps> = ({
   lists,
   loading,
+  onChange,
   onExport,
   onDelete,
+  pagination,
 }) => {
   const columns = buildColumns(onExport, onDelete);
   return (
@@ -74,7 +78,13 @@ export const ValueListsTableComponent: React.FC<ValueListsTableProps> = ({
       <EuiText size="s">
         <h2>{i18n.TABLE_TITLE}</h2>
       </EuiText>
-      <EuiBasicTable columns={columns} items={lists} loading={loading} />
+      <EuiBasicTable
+        columns={columns}
+        items={lists}
+        loading={loading}
+        onChange={onChange}
+        pagination={pagination}
+      />
     </EuiPanel>
   );
 };

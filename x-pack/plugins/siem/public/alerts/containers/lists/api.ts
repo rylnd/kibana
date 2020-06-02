@@ -9,10 +9,23 @@ import { LIST_URL, LIST_ITEM_URL } from '../../../../../lists/common/constants';
 import { KibanaServices } from '../../../common/lib/kibana';
 import { ListResponse, GetListsResponse } from './types';
 
-export const getLists = async ({ signal }: { signal: AbortSignal }): Promise<GetListsResponse> => {
+interface GetListsParams {
+  pageSize: number | undefined;
+  pageIndex: number | undefined;
+  signal: AbortSignal;
+}
+
+export const getLists = async ({
+  pageIndex,
+  pageSize,
+  signal,
+}: GetListsParams): Promise<GetListsResponse> => {
   return KibanaServices.get().http.fetch(`${LIST_URL}/_find`, {
     method: 'GET',
-    query: {},
+    query: {
+      page: pageIndex,
+      per_page: pageSize,
+    },
     signal,
   });
 };

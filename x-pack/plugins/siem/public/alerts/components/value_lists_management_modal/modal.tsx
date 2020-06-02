@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   EuiButton,
   EuiModal,
@@ -33,7 +33,9 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   onClose,
   showModal,
 }) => {
-  const [lists, fetchLists] = useLists();
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+  const [lists, fetchLists] = useLists({ pageIndex: pageIndex + 1, pageSize });
   const toasts = useToasts();
 
   const handleDelete = useCallback(
@@ -50,6 +52,14 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
       await exportList({ id, signal: exportTask.signal });
     },
     [exportList]
+  );
+
+  const handleTableChange = useCallback(
+    ({ page: { index, size } }: { page: { index: number; size: number } }) => {
+      setPageIndex(index);
+      setPageSize(size);
+    },
+    [setPageIndex, setPageSize]
   );
   const handleUploadError = useCallback(
     (error: Error) => {
@@ -71,12 +81,22 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   );
 
   useEffect(() => {
-    fetchLists();
-  }, []);
+    if (showModal) {
+      fetchLists();
+    }
+  }, [showModal, fetchLists]);
 
   if (!showModal) {
     return null;
   }
+
+  const pagination = {
+    pageIndex,
+    pageSize,
+    totalItemCount: lists.value?.total ?? 0,
+    pageSizeOptions: [10, 20, 50],
+    hidePerPageOptions: false,
+  };
 
   return (
     <EuiOverlayMask>
@@ -88,10 +108,12 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
           <ValueListsForm onSuccess={handleUploadSuccess} onError={handleUploadError} />
           <EuiSpacer />
           <ValueListsTable
-            lists={lists.value ?? []}
+            lists={lists.value?.data ?? []}
             loading={lists.loading}
             onDelete={handleDelete}
             onExport={handleExport}
+            onChange={handleTableChange}
+            pagination={pagination}
           />
         </EuiModalBody>
         <EuiModalFooter>

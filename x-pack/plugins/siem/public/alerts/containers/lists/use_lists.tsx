@@ -8,15 +8,20 @@ import { useCallback } from 'react';
 import { useAsyncFn } from 'react-use';
 import { AsyncFn } from 'react-use/lib/useAsyncFn';
 
-import { ListSchema } from '../../../../../lists/common/schemas/response';
 import { getLists } from './api';
+import { GetListsResponse } from './types';
 
-export const useLists = (): AsyncFn<ListSchema[]> => {
+export interface UseListsParams {
+  pageSize: number | undefined;
+  pageIndex: number | undefined;
+}
+
+export const useLists = ({ pageSize, pageIndex }: UseListsParams): AsyncFn<GetListsResponse> => {
   const fetchLists = useCallback(async () => {
     const abortCtrl = new AbortController();
-    const response = await getLists({ signal: abortCtrl.signal });
-    return response.data;
-  }, [getLists]);
+    const response = await getLists({ pageSize, pageIndex, signal: abortCtrl.signal });
+    return response;
+  }, [getLists, pageSize, pageIndex]);
 
-  return useAsyncFn(fetchLists);
+  return useAsyncFn(fetchLists, [fetchLists]);
 };
