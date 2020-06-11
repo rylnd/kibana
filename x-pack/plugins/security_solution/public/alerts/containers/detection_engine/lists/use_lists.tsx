@@ -21,7 +21,7 @@ export const useLists = ({ pageSize, pageIndex }: UseListsParams): AsyncFn<GetLi
     const abortCtrl = new AbortController();
     const response = await getLists({ pageSize, pageIndex, signal: abortCtrl.signal });
     return response;
-  }, [getLists, pageSize, pageIndex]);
+  }, [pageSize, pageIndex]);
 
   return useAsyncFn(fetchLists, [fetchLists]);
 };

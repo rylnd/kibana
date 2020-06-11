@@ -44,15 +44,12 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
       await deleteList({ id, signal: deleteTask.signal });
       fetchLists();
     },
-    [deleteList, fetchLists]
+    [fetchLists]
   );
-  const handleExport = useCallback(
-    async ({ id }: { id: string }) => {
-      const exportTask = new AbortController();
-      await exportList({ id, signal: exportTask.signal });
-    },
-    [exportList]
-  );
+  const handleExport = useCallback(async ({ id }: { id: string }) => {
+    const exportTask = new AbortController();
+    await exportList({ id, signal: exportTask.signal });
+  }, []);
 
   const handleTableChange = useCallback(
     ({ page: { index, size } }: { page: { index: number; size: number } }) => {

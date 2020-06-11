@@ -89,11 +89,11 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError
       setImportPending(false);
       onError(error);
     },
-    [setImportPending]
+    [onError, setImportPending]
   );
 
   const handleImport = useCallback(async () => {
-    if (!importPending && files?.length) {
+    if (!importPending && files && files.length) {
       try {
         setImportPending(true);
         importTask.current = new AbortController();
@@ -109,11 +109,11 @@ export const ValueListsFormComponent: React.FC<ValueListsFormProps> = ({ onError
         handleError(error);
       }
     }
-  }, [files, type, importPending, handleSuccess, handleError, importList]);
+  }, [files, type, importPending, handleSuccess, handleError]);
 
   useEffect(() => {
     return handleCancel;
-  }, []);
+  }, [handleCancel]);
 
   return (
     <EuiForm>
