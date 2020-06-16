@@ -48,7 +48,6 @@ export const GenericDownloaderComponent = ({
 }: GenericDownloaderProps) => {
   const anchorRef = useRef<HTMLAnchorElement>(null);
   const [, dispatchToaster] = useStateToaster();
-
   useEffect(() => {
     let isSubscribed = true;
     const abortCtrl = new AbortController();

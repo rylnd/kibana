@@ -23,6 +23,7 @@ import { useLists } from '../../containers/detection_engine/lists/use_lists';
 import * as i18n from './translations';
 import { ValueListsTable } from './table';
 import { ValueListsForm } from './form';
+import { GenericDownloader } from '../../../common/components/generic_downloader';
 
 interface ValueListsModalProps {
   onClose: () => void;
@@ -36,6 +37,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [lists, fetchLists] = useLists({ pageIndex: pageIndex + 1, pageSize });
+  const [exportListId, setExportListId] = useState<string>();
   const toasts = useToasts();
 
   const handleDelete = useCallback(
@@ -46,9 +48,16 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
     },
     [fetchLists]
   );
-  const handleExport = useCallback(async ({ id }: { id: string }) => {
-    const exportTask = new AbortController();
-    await exportList({ id, signal: exportTask.signal });
+
+  const handleExport = useCallback(
+    async ({ ids, signal }: { ids: string[]; signal: AbortSignal }) => {
+      return exportList({ id: ids[0], signal });
+    },
+    []
+  );
+
+  const handleExportListId = useCallback(async ({ id }: { id: string }) => {
+    setExportListId(id);
   }, []);
 
   const handleTableChange = useCallback(
@@ -108,7 +117,7 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
             lists={lists.value?.data ?? []}
             loading={lists.loading}
             onDelete={handleDelete}
-            onExport={handleExport}
+            onExport={handleExportListId}
             onChange={handleTableChange}
             pagination={pagination}
           />
@@ -117,6 +126,17 @@ export const ValueListsModalComponent: React.FC<ValueListsModalProps> = ({
           <EuiButton onClick={onClose}>{i18n.CLOSE_BUTTON}</EuiButton>
         </EuiModalFooter>
       </EuiModal>
+      <GenericDownloader
+        filename={exportListId ?? 'download.txt'}
+        ids={exportListId != null ? [exportListId] : undefined}
+        onExportSuccess={() => {
+          setExportListId(undefined);
+        }}
+        onExportFailure={() => {
+          setExportListId(undefined);
+        }}
+        exportSelectedData={handleExport}
+      />
     </EuiOverlayMask>
   );
 };
