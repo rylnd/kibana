@@ -239,7 +239,7 @@ export class Plugin implements IPlugin<PluginSetup, PluginStart, SetupPlugins, S
       });
     }
 
-    const libs = compose(core, plugins, this.context.env.mode.prod);
+    const libs = compose(core, plugins);
     initServer(libs);
 
     return {};

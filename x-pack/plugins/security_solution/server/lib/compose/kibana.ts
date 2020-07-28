@@ -33,12 +33,8 @@ import * as pinnedEvent from '../pinned_event/saved_object';
 import * as timeline from '../timeline/saved_object';
 import { ElasticsearchMatrixHistogramAdapter, MatrixHistogram } from '../matrix_histogram';
 
-export function compose(
-  core: CoreSetup,
-  plugins: SetupPlugins,
-  isProductionMode: boolean
-): AppBackendLibs {
-  const framework = new KibanaBackendFrameworkAdapter(core, plugins, isProductionMode);
+export function compose(core: CoreSetup, plugins: SetupPlugins): AppBackendLibs {
+  const framework = new KibanaBackendFrameworkAdapter(core, plugins);
   const sources = new Sources(new ConfigurationSourcesAdapter());
   const sourceStatus = new SourceStatus(new ElasticsearchSourceStatusAdapter(framework));
 
