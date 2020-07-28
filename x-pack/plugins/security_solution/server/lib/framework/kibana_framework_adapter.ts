@@ -6,6 +6,7 @@
 
 import { GraphQLSchema } from 'graphql';
 import { runHttpQuery } from 'apollo-server-core';
+import { generateSchemaHash } from 'apollo-server-core/dist/utils/schemaHash';
 import { schema as configSchema } from '@kbn/config-schema';
 import {
   CoreSetup,
@@ -58,6 +59,7 @@ export class KibanaBackendFrameworkAdapter implements FrameworkAdapter {
   }
 
   public registerGraphQLEndpoint(routePath: string, schema: GraphQLSchema): void {
+    const schemaHash = generateSchemaHash(schema);
     this.router.post(
       {
         path: routePath,
@@ -71,9 +73,16 @@ export class KibanaBackendFrameworkAdapter implements FrameworkAdapter {
           const user = await this.getCurrentUserInfo(request);
           const gqlResponse = await runHttpQuery([request], {
             method: 'POST',
+            request: {
+              method: 'POST',
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              headers: request.headers as any,
+              url: request.url.toString(),
+            },
             options: (req: KibanaRequest) => ({
               context: { req: wrapRequest(req, context, user) },
               schema,
+              schemaHash,
             }),
             query: request.body,
           });
