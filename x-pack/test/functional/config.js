@@ -59,6 +59,7 @@ export default async function ({ readConfigFile }) {
       resolve(__dirname, './apps/transform'),
       resolve(__dirname, './apps/reporting_management'),
       resolve(__dirname, './apps/management'),
+      resolve(__dirname, './apps/security_solution'),
 
       // This license_management file must be last because it is destructive.
       resolve(__dirname, './apps/license_management'),
@@ -195,6 +196,9 @@ export default async function ({ readConfigFile }) {
       },
       reporting: {
         pathname: '/app/management/insightsAndAlerting/reporting',
+      },
+      securitySolution: {
+        pathname: '/app/security',
       },
     },
 
