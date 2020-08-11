@@ -49,6 +49,7 @@ import { UptimeProvider } from './uptime';
 import { InfraSourceConfigurationFormProvider } from './infra_source_configuration_form';
 import { LogsUiProvider } from './logs_ui';
 import { MachineLearningProvider } from './ml';
+import { SecuritySolutionProvider } from './security_solutioon';
 import { TransformProvider } from './transform';
 import {
   DashboardDrilldownPanelActionsProvider,
@@ -97,6 +98,7 @@ export const services = {
   infraSourceConfigurationForm: InfraSourceConfigurationFormProvider,
   logsUi: LogsUiProvider,
   ml: MachineLearningProvider,
+  securitySolution: SecuritySolutionProvider,
   transform: TransformProvider,
   dashboardDrilldownPanelActions: DashboardDrilldownPanelActionsProvider,
   dashboardDrilldownsManage: DashboardDrilldownsManageProvider,
