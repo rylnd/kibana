@@ -248,6 +248,11 @@ export const useField = <T>(
           }) as Promise<ValidationError>;
 
           const validationResult = await inflightValidation.current;
+          if (path === 'queryBar') {
+            console.log('validatorRef', inflightValidation.current);
+            console.log('validator', validator);
+            console.log('result', validationResult);
+          }
 
           if (!validationResult) {
             continue;
