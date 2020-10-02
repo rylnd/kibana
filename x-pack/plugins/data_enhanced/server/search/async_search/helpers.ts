@@ -49,8 +49,10 @@ export const getAsyncSearch = ({
   params,
 }: AsyncSearch): TransportRequestPromise<ApiResponse> => {
   if (id) {
+    console.log('performing get', params, id, options);
     return client.get({ ...params, id }, options);
   } else {
+    console.log('performing search', params, options);
     return client.submit(params, options);
   }
 };

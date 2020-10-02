@@ -81,7 +81,7 @@ export const enhancedEsSearchStrategyProvider = (
     const esClient = context.core.elasticsearch.client.asCurrentUser;
     const uiSettingsClient = context.core.uiSettings.client;
     const asyncOptions = getAsyncOptions();
-    const asyncParams = await getAsyncParams({ uiSettingsClient, params: request.params ?? {} });
+    const asyncParams = await getAsyncParams({ uiSettingsClient, params: request.params! });
 
     const promise = getAsyncSearch({
       id: request.id,
