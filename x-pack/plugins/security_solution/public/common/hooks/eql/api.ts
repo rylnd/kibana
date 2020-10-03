@@ -5,10 +5,10 @@
  */
 
 import { DataPublicPluginStart } from '../../../../../../../src/plugins/data/public';
-import {
-  EqlSearchStrategyRequest,
-  EqlSearchStrategyResponse,
-} from '../../../../../data_enhanced/common';
+// import {
+//   EqlSearchStrategyRequest,
+//   EqlSearchStrategyResponse,
+// } from '../../../../../data_enhanced/common';
 import { EqlValidationSchema as EqlValidationRequest } from '../../../../common/detection_engine/schemas/request/eql_validation_schema';
 import { EqlValidationSchema as EqlValidationResponse } from '../../../../common/detection_engine/schemas/response/eql_validation_schema';
 import {
@@ -29,9 +29,9 @@ export const validateEql = async ({
   signal,
 }: Params): Promise<EqlValidationResponse> => {
   const { rawResponse: response } = await data.search
-    .search<EqlSearchStrategyRequest, EqlSearchStrategyResponse>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .search<any, any>(
       {
-        // @ts-expect-error allow_no_indices is missing on EqlSearch
         params: { allow_no_indices: true, index: index.join(), body: { query } },
         options: { ignore: [400] },
       },
