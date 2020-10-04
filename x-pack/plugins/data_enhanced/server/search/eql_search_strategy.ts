@@ -36,12 +36,17 @@ export const eqlSearchStrategyProvider = (
 
       const uiSettingsClient = await context.core.uiSettings.client;
       const asyncOptions = getAsyncOptions();
-      const asyncParams = await getAsyncParams({ uiSettingsClient, params: request.params! });
+      const eqlOptions = { ...asyncOptions, ...request.options };
+      const asyncParams = await getAsyncParams({
+        uiSettingsClient,
+        params: request.params!,
+      });
+      const { batchedReduceSize, trackTotalHits, ...eqlParams } = asyncParams;
 
       const promise = getAsyncSearch({
         id: request.id,
-        params: toSnakeCase(asyncParams),
-        options: toSnakeCase(asyncOptions),
+        params: toSnakeCase(eqlParams),
+        options: toSnakeCase(eqlOptions),
         client: shimmedClient,
       });
 

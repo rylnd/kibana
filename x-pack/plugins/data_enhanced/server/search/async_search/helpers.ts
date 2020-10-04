@@ -4,6 +4,8 @@
  * you may not use this file except in compliance with the Elastic License.
  */
 
+import { has } from 'lodash';
+import { SearchResponse } from 'elasticsearch';
 import { ApiResponse } from '@elastic/elasticsearch';
 import { AsyncSearchGet, AsyncSearchSubmit } from '@elastic/elasticsearch/api/requestParams';
 import {
@@ -24,10 +26,17 @@ interface GetAsyncParams<T> {
   params: T;
 }
 
+type Resolved<T> = T extends PromiseLike<infer U> ? U : T;
+type AsyncParams<T> = T & { batchedReduceSize: number } & Resolved<
+    ReturnType<typeof getDefaultSearchParams>
+  >;
+
+const isErrorResponse = (response: unknown): boolean => has(response, 'body.error');
+
 export const getAsyncParams = async <T extends ISearchRequestParams>({
   uiSettingsClient,
   params,
-}: GetAsyncParams<T>): Promise<T> => {
+}: GetAsyncParams<T>): Promise<AsyncParams<T>> => {
   return {
     batchedReduceSize: 64, // Only report partial results every 64 shards; this should be reduced when we actually display partial results
     ...(await getDefaultSearchParams(uiSettingsClient)),
@@ -49,21 +58,37 @@ export const getAsyncSearch = ({
   params,
 }: AsyncSearch): TransportRequestPromise<ApiResponse> => {
   if (id) {
-    console.log('performing get', params, id, options);
     return client.get({ ...params, id }, options);
   } else {
-    console.log('performing search', params, options);
     return client.submit(params, options);
   }
 };
 
 export const formatSearchResponse = (rawResponse: ApiResponse): IEsSearchResponse => {
-  const { id, response, is_partial: isPartial, is_running: isRunning } = rawResponse.body;
-  return {
-    id,
-    isPartial,
-    isRunning,
-    rawResponse: shimHitsTotal(response),
-    ...getTotalLoaded(response._shards),
-  };
+  if (isErrorResponse(rawResponse)) {
+    return {
+      id: undefined,
+      isPartial: false,
+      isRunning: false,
+      rawResponse: rawResponse.body as SearchResponse<unknown>,
+    };
+  } else {
+    const {
+      id,
+      response,
+      is_partial: isPartial,
+      is_running: isRunning,
+      ...rest
+    } = rawResponse.body;
+    // EQL response does not have a `response` property
+    const searchResponse = response ?? rest;
+
+    return {
+      id,
+      isPartial,
+      isRunning,
+      rawResponse: shimHitsTotal(searchResponse),
+      ...(searchResponse._shards && getTotalLoaded(searchResponse._shards)),
+    };
+  }
 };
