@@ -49,6 +49,11 @@ export const buildThreatEnrichment = ({
       perPage: undefined,
     });
 
+    console.log(
+      'matchedThreats',
+      threatResponse.hits.hits.map((i) => i._id)
+    );
+
     return threatResponse.hits.hits;
   };
 

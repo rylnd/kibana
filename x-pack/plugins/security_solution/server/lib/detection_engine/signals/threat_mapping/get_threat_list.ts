@@ -75,6 +75,10 @@ export const getThreatList = async ({
   });
 
   logger.debug(buildRuleMessage(`Retrieved indicator items of size: ${response.hits.hits.length}`));
+  console.log(
+    'threatList',
+    response.hits.hits.map((i) => i._id)
+  );
   return response;
 };
 
