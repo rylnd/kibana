@@ -1,0 +1,255 @@
+/*
+ * Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+ * or more contributor license agreements. Licensed under the Elastic License
+ * 2.0; you may not use this file except in compliance with the Elastic License
+ * 2.0.
+ */
+
+
+import { singleSearchAfter } from './single_search_after';
+import { filterEventsAgainstList } from './filters/filter_events_against_list';
+import {
+  createSearchResultReturnType,
+  createTotalHitsFromSearchResult,
+  getSignalTimeTuples,
+  mergeSearchResults,
+  buildRuleQueryResultFromResponse,
+} from './utils';
+import { SearchAfterAndBulkCreateParams } from './types';
+import { RuleQueryResult } from './rule_executors/types';
+import { buildRuleQueryResult, combineQueryResults } from './threat_mapping/utils';
+
+/* eslint-disable complexity */
+
+// search_after through documents
+export const performRuleQuery = async ({
+  gap,
+  previousStartedAt,
+  ruleParams,
+  exceptionsList,
+  services,
+  listClient,
+  logger,
+  eventsTelemetry,
+  id,
+  inputIndexPattern,
+  signalsIndex,
+  filter,
+  actions,
+  name,
+  createdAt,
+  createdBy,
+  updatedBy,
+  updatedAt,
+  interval,
+  enabled,
+  pageSize,
+  refresh,
+  tags,
+  throttle,
+  buildRuleMessage,
+}: SearchAfterAndBulkCreateParams): Promise<RuleQueryResult> => {
+  let toReturn = buildRuleQueryResult();
+
+  // sortId tells us where to start our next consecutive search_after query
+  let sortId: string | undefined;
+  let hasSortId = true; // default to true so we execute the search on initial run
+  let backupSortId: string | undefined;
+  let hasBackupSortId = ruleParams.timestampOverride ? true : false;
+
+  // signalsCreatedCount keeps track of how many signals we have created,
+  // to ensure we don't exceed maxSignals
+  let signalsCount = 0;
+
+  const totalToFromTuples = getSignalTimeTuples({
+    logger,
+    ruleParamsFrom: ruleParams.from,
+    ruleParamsTo: ruleParams.to,
+    ruleParamsMaxSignals: ruleParams.maxSignals,
+    gap,
+    previousStartedAt,
+    interval,
+    buildRuleMessage,
+  });
+  logger.debug(buildRuleMessage(`totalToFromTuples: ${totalToFromTuples.length}`));
+
+  while (totalToFromTuples.length > 0) {
+    const tuple = totalToFromTuples.pop();
+    if (tuple == null || tuple.to == null || tuple.from == null) {
+      logger.error(buildRuleMessage(`[-] malformed date tuple`));
+      return buildRuleQueryResult({
+        success: false,
+        errors: ['malformed date tuple'],
+      });
+    }
+    signalsCount = 0;
+    while (signalsCount < tuple.maxSignals) {
+      try {
+        let mergedSearchResults = createSearchResultReturnType();
+        logger.debug(buildRuleMessage(`sortIds: ${sortId}`));
+
+        // if there is a timestampOverride param we always want to do a secondary search against @timestamp
+        if (ruleParams.timestampOverride != null && hasBackupSortId) {
+          // only execute search if we have something to sort on or if it is the first search
+          const {
+            searchResult: searchResultB,
+            searchDuration: searchDurationB,
+            searchErrors: searchErrorsB,
+          } = await singleSearchAfter({
+            buildRuleMessage,
+            searchAfterSortId: backupSortId,
+            index: inputIndexPattern,
+            from: tuple.from.toISOString(),
+            to: tuple.to.toISOString(),
+            services,
+            logger,
+            filter,
+            pageSize: Math.ceil(Math.min(tuple.maxSignals, pageSize)),
+            timestampOverride: ruleParams.timestampOverride,
+            excludeDocsWithTimestampOverride: true,
+          });
+
+          // call this function setSortIdOrExit()
+          const lastSortId = searchResultB?.hits?.hits[searchResultB.hits.hits.length - 1]?.sort;
+          if (lastSortId != null && lastSortId.length !== 0) {
+            backupSortId = lastSortId[0];
+            hasBackupSortId = true;
+          } else {
+            // TODO: This comment does not seem to match the code; this is the first loop and the first search, so how could the initial search result be known?
+            // answer: these were previously not blocking searches, and so the "second" search actually executed first TLDR outdated comment
+            // if no sort id on backup search and the initial search result was also empty
+            logger.debug(buildRuleMessage('backupSortIds was empty on searchResultB'));
+            hasBackupSortId = false;
+          }
+
+          mergedSearchResults = mergeSearchResults([mergedSearchResults, searchResultB]);
+
+          // TODO again, on the first loop this is the FIRST search and toReturn is default values
+          // merge the search result from the secondary search with the first
+          toReturn = combineQueryResults([
+            toReturn,
+            buildRuleQueryResultFromResponse({
+              searchResult: mergedSearchResults,
+              timestampOverride: undefined,
+            }),
+            buildRuleQueryResult({
+              searchAfterTimes: [searchDurationB],
+              errors: searchErrorsB,
+            }),
+          ]);
+        }
+
+        if (hasSortId) {
+          const { searchResult, searchDuration, searchErrors } = await singleSearchAfter({
+            buildRuleMessage,
+            searchAfterSortId: sortId,
+            index: inputIndexPattern,
+            from: tuple.from.toISOString(),
+            to: tuple.to.toISOString(),
+            services,
+            logger,
+            filter,
+            pageSize: Math.ceil(Math.min(tuple.maxSignals, pageSize)),
+            timestampOverride: ruleParams.timestampOverride,
+            excludeDocsWithTimestampOverride: false,
+          });
+          mergedSearchResults = mergeSearchResults([mergedSearchResults, searchResult]);
+          toReturn = combineQueryResults([
+            toReturn,
+            buildRuleQueryResultFromResponse({
+              searchResult: mergedSearchResults,
+              timestampOverride: ruleParams.timestampOverride,
+            }),
+            buildRuleQueryResult({
+              searchAfterTimes: [searchDuration],
+              errors: searchErrors,
+            }),
+          ]);
+
+          // TODO it's unclear why hits are guaranteed here; the type appears to be identical to the previous result which has more guards
+          // we are guaranteed to have searchResult hits at this point
+          // because we check before if the totalHits or
+          // searchResult.hits.hits.length is 0
+          // call this function setSortIdOrExit()
+          const lastSortId = searchResult.hits.hits[searchResult.hits.hits.length - 1]?.sort;
+          if (lastSortId != null && lastSortId.length !== 0) {
+            sortId = lastSortId[0];
+            hasSortId = true;
+          } else {
+            hasSortId = false;
+          }
+        }
+
+        // determine if there are any candidate signals to be processed
+        const totalHits = createTotalHitsFromSearchResult({ searchResult: mergedSearchResults });
+        logger.debug(buildRuleMessage(`totalHits: ${totalHits}`));
+        logger.debug(
+          buildRuleMessage(`searchResult.hit.hits.length: ${mergedSearchResults.hits.hits.length}`)
+        );
+
+        if (totalHits === 0 || mergedSearchResults.hits.hits.length === 0) {
+          logger.debug(
+            buildRuleMessage(
+              `${
+                totalHits === 0 ? 'totalHits' : 'searchResult.hits.hits.length'
+              } was 0, exiting and moving on to next tuple`
+            )
+          );
+          break;
+        }
+
+        // filter out the search results that match with the values found in the list.
+        // the resulting set are signals to be indexed, given they are not duplicates
+        // of signals already present in the signals index.
+        const filteredEvents = await filterEventsAgainstList({
+          listClient,
+          exceptionsList,
+          logger,
+          eventSearchResult: mergedSearchResults,
+          buildRuleMessage,
+        });
+        const currentSignalsCount = filteredEvents.hits.hits.length;
+
+        // only bulk create if there are filteredEvents leftover
+        // if there isn't anything after going through the value list filter
+        // skip the call to bulk create and proceed to the next search_after,
+        // if there is a sort id to continue the search_after with.
+        if (currentSignalsCount !== 0) {
+          // make sure we are not going to create more signals than maxSignals allows
+          if (signalsCount + currentSignalsCount > tuple.maxSignals) {
+            filteredEvents.hits.hits = filteredEvents.hits.hits.slice(
+              0,
+              tuple.maxSignals - signalsCount
+            );
+          }
+          signalsCount += currentSignalsCount;
+          toReturn = combineQueryResults([
+            toReturn,
+            buildRuleQueryResult({
+              signals: filteredEvents,
+            }),
+          ]);
+          logger.debug(
+            buildRuleMessage(`filteredEvents.hits.hits: ${filteredEvents.hits.hits.length}`)
+          );
+        }
+
+        if (!hasSortId && !hasBackupSortId) {
+          logger.debug(buildRuleMessage('ran out of sort ids to sort on'));
+          break;
+        }
+      } catch (exc: unknown) {
+        logger.error(buildRuleMessage(`[-] search_after threw an error ${exc}`));
+        return combineQueryResults([
+          toReturn,
+          buildRuleQueryResult({
+            success: false,
+            errors: [`${exc}`],
+          }),
+        ]);
+      }
+    }
+  }
+  logger.debug(buildRuleMessage(`[+] completed query of ${toReturn.signalsCount} signals`));
+  return toReturn;
+};

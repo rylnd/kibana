@@ -42,6 +42,8 @@ import { hasLargeValueList } from '../../../../common/detection_engine/utils';
 import { MAX_EXCEPTION_LIST_SIZE } from '../../../../../lists/common/constants';
 import { ShardError } from '../../types';
 import { RuleStatusService } from './rule_status_service';
+import { RuleExecutorResult, RuleQueryResult } from './rule_executors/types';
+import { buildRuleQueryResult } from './threat_mapping/utils';
 
 interface SortExceptionsReturn {
   exceptionsWithValueLists: ExceptionListItemSchema[];
@@ -587,6 +589,27 @@ export const lastValidDate = ({
       }
     }
   }
+};
+
+export const buildRuleQueryResultFromResponse = ({
+  searchResult,
+  timestampOverride,
+}: {
+  searchResult: SignalSearchResponse;
+  timestampOverride: TimestampOverrideOrUndefined;
+}): RuleQueryResult => {
+  return buildRuleQueryResult({
+    success:
+      searchResult._shards.failed === 0 ||
+      searchResult._shards.failures?.every((failure) => {
+        return (
+          failure.reason?.reason === 'No mapping found for [@timestamp] in order to sort on' ||
+          failure.reason?.reason ===
+            `No mapping found for [${timestampOverride}] in order to sort on`
+        );
+      }),
+    lastLookBackDate: lastValidDate({ searchResult, timestampOverride }),
+  });
 };
 
 export const createSearchAfterReturnTypeFromResponse = ({
