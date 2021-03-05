@@ -76,6 +76,7 @@ export const enrichSignalThreatMatches = async (
 
   const uniqueHits = groupAndMergeSignalMatches(signalHits);
   const signalMatches = uniqueHits.map((signalHit) => extractNamedQueries(signalHit));
+  console.log('signalMatches', JSON.stringify(signalMatches, null, 2));
   const matchedThreatIds = [...new Set(signalMatches.flat().map(({ id }) => id))];
   const matchedThreats = await getMatchedThreats(matchedThreatIds);
   const matchedIndicators = signalMatches.map((queries) =>
