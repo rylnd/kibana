@@ -6,7 +6,9 @@
  */
 
 import { SearchAfterAndBulkCreateReturnType, SignalSourceHit } from '../types';
-import { ThreatMatchNamedQuery } from './types';
+import { RuleQueryResult } from '../rule_executors/types';
+import { createSearchResultReturnType, mergeSearchResults } from '../utils';
+import { GetMatchedThreats, ThreatIndicator, ThreatListItem, ThreatMatchNamedQuery } from './types';
 
 /**
  * Given two timers this will take the max of each and add them to each other and return that addition.
@@ -55,6 +57,28 @@ export const calculateMaxLookBack = (
     return existingDate;
   }
 };
+
+export const buildRuleQueryResult = (result?: Partial<RuleQueryResult>): RuleQueryResult => ({
+  success: result?.success ?? true,
+  searchAfterTimes: result?.searchAfterTimes ?? [],
+  lastLookBackDate: result?.lastLookBackDate ?? null,
+  signalsCount: result?.signalsCount ?? 0,
+  signals: result?.signals ?? createSearchResultReturnType(),
+  errors: result?.errors ?? [],
+});
+
+export const combineQueryResults = (results: RuleQueryResult[]): RuleQueryResult =>
+  results.reduce((currentResult, newResult) => ({
+    success: currentResult.success && newResult.success,
+    errors: [...new Set([...currentResult.errors, ...newResult.errors])],
+    signals: mergeSearchResults([currentResult.signals, newResult.signals]),
+    signalsCount: currentResult.signalsCount + newResult.signalsCount,
+    searchAfterTimes: calculateAdditiveMax(
+      currentResult.searchAfterTimes,
+      newResult.searchAfterTimes
+    ),
+    lastLookBackDate: newResult.lastLookBackDate,
+  }));
 
 /**
  * Combines two results together and returns the results combined
@@ -114,6 +138,25 @@ export const combineConcurrentResults = (
 
   return combineResults(currentResult, maxedNewResult);
 };
+
+/**
+ * Combines two results together and returns the results combined
+ * @param currentResult The current result to combine with a newResult
+ * @param newResult The new result to combine
+ */
+export const combineConcurrentQueryResults = (results: RuleQueryResult[]): RuleQueryResult =>
+  results.reduce((agg, result) => {
+    const maxSearchAfterTime = calculateMax(agg.searchAfterTimes, result.searchAfterTimes);
+    const lastLookBackDate = calculateMaxLookBack(agg.lastLookBackDate, result.lastLookBackDate);
+    return {
+      success: agg.success && result.success,
+      searchAfterTimes: [maxSearchAfterTime],
+      lastLookBackDate,
+      signalsCount: agg.signalsCount + result.signalsCount,
+      signals: mergeSearchResults([agg.signals, result.signals]),
+      errors: [...new Set([...agg.errors, ...result.errors])],
+    };
+  });
 
 const separator = '__SEP__';
 export const encodeThreatMatchNamedQuery = ({

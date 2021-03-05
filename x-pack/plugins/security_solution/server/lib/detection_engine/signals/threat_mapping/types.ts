@@ -30,10 +30,11 @@ import {
 } from '../../../../../../alerts/server';
 import { ExceptionListItemSchema } from '../../../../../../lists/common/schemas';
 import { ILegacyScopedClusterClient, Logger } from '../../../../../../../../src/core/server';
-import { RuleAlertAction } from '../../../../../common/detection_engine/types';
+import { RuleAlertAction, SearchTypes } from '../../../../../common/detection_engine/types';
 import { TelemetryEventsSender } from '../../../telemetry/sender';
 import { BuildRuleMessage } from '../rule_messages';
 import { RuleRangeTuple, SearchAfterAndBulkCreateReturnType, SignalsEnrichment } from '../types';
+import { RuleQueryResult } from '../rule_executors/types';
 
 export type SortOrderOrUndefined = 'asc' | 'desc' | undefined;
 
@@ -110,6 +111,10 @@ export interface CreateThreatSignalOptions {
   currentThreatList: ThreatListItem[];
   currentResult: SearchAfterAndBulkCreateReturnType;
 }
+
+export type BuildThreatSignalOptions = Omit<CreateThreatSignalOptions, 'currentResult'> & {
+  currentResult: RuleQueryResult;
+};
 
 export interface BuildThreatMappingFilterOptions {
   threatMapping: ThreatMapping;
@@ -191,6 +196,7 @@ export type ThreatListItem = SearchResponse<ThreatListDoc>['hits']['hits'][numbe
 
 export interface ThreatIndicator {
   [key: string]: unknown;
+  fields?: Record<string, SearchTypes[]>;
 }
 
 export interface SortWithTieBreaker {
@@ -204,8 +210,6 @@ export interface ThreatMatchNamedQuery {
   value: string;
 }
 
-export type GetMatchedThreats = (ids: string[]) => Promise<ThreatListItem[]>;
-
 export interface BuildThreatEnrichmentOptions {
   buildRuleMessage: BuildRuleMessage;
   exceptionItems: ExceptionListItemSchema[];
@@ -218,3 +222,5 @@ export interface BuildThreatEnrichmentOptions {
   threatLanguage: ThreatLanguageOrUndefined;
   threatQuery: ThreatQuery;
 }
+
+export type GetMatchedThreats = (ids: string[]) => Promise<ThreatListItem[]>;

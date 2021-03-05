@@ -77,6 +77,7 @@ import { getIndexVersion } from '../routes/index/get_index_version';
 import { MIN_EQL_RULE_INDEX_VERSION } from '../routes/index/get_signals_template';
 import { filterEventsAgainstList } from './filters/filter_events_against_list';
 import { isOutdated } from '../migrations/helpers';
+import { ruleExecutorFactory } from './rule_executors';
 import { RuleTypeParams } from '../types';
 
 export const signalRulesAlertType = ({
@@ -265,7 +266,21 @@ export const signalRulesAlertType = ({
           lists: exceptionsList ?? [],
         });
 
-        if (isMlRule(type)) {
+        const ruleExecutor = ruleExecutorFactory(params, {
+          alertId,
+          exceptionListClient: exceptionsClient,
+          eventsTelemetry,
+          gap,
+          listClient,
+          logger,
+          previousStartedAt,
+          services,
+          version,
+        });
+
+        if (ruleExecutor) {
+          result = ruleExecutor.execute();
+        } else if (isMlRule(type)) {
           if (ml == null) {
             throw new Error('ML plugin unavailable during rule execution');
           }
@@ -489,12 +504,15 @@ export const signalRulesAlertType = ({
             query,
             inputIndex,
             type,
-            filters: filters ?? [],
             language,
             name,
             savedId,
             services,
+            filters: filters ?? [],
             exceptionItems: exceptionItems ?? [],
+            threatFilters: threatFilters ?? [],
+            concurrentSearches: concurrentSearches ?? 1,
+            itemsPerSearch: itemsPerSearch ?? 9000,
             listClient,
             logger,
             eventsTelemetry,
@@ -512,14 +530,11 @@ export const signalRulesAlertType = ({
             refresh,
             tags,
             throttle,
-            threatFilters: threatFilters ?? [],
             threatQuery,
             threatLanguage,
             buildRuleMessage,
             threatIndex,
             threatIndicatorPath,
-            concurrentSearches: concurrentSearches ?? 1,
-            itemsPerSearch: itemsPerSearch ?? 9000,
           });
         } else if (type === 'query' || type === 'saved_query') {
           const inputIndex = await getInputIndex(services, version, index);
