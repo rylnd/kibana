@@ -265,7 +265,7 @@ export default ({ getService }: FtrProviderContext) => {
         expect(signalsOpen.hits.hits.length).equal(0);
       });
 
-      describe('indicator enrichment', () => {
+      describe.only('indicator enrichment', () => {
         beforeEach(async () => {
           await esArchiver.load('filebeat/threat_intel');
         });
