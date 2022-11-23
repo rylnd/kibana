@@ -501,6 +501,9 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
     [dataSourceType]
   );
 
+  const isImmutable = true;
+  const isPrebuiltQueryRule = isQueryRule(ruleType) && isImmutable;
+
   const DataViewSelectorMemo = useMemo(() => {
     return (
       <UseField
@@ -508,6 +511,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
         path="dataViewId"
         component={DataViewSelector}
         componentProps={{
+          isDisabled: isPrebuiltQueryRule,
           kibanaDataViews,
         }}
       />
@@ -547,6 +551,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
           <EuiFlexItem>
             <RuleTypeEuiFormRow $isVisible={true}>
               <EuiButtonGroup
+                isDisabled={isPrebuiltQueryRule}
                 isFullWidth={true}
                 legend="Rule index pattern or data view selector"
                 data-test-subj="dataViewIndexPatternButtonGroup"
@@ -568,7 +573,11 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
                 config={{
                   ...omit(schema.index, 'label'),
                   labelAppend: indexModified ? (
-                    <MyLabelButton onClick={handleResetIndices} iconType="refresh">
+                    <MyLabelButton
+                      isDisabled={isPrebuiltQueryRule}
+                      onClick={handleResetIndices}
+                      iconType="refresh"
+                    >
                       {i18n.RESET_DEFAULT_INDEX}
                     </MyLabelButton>
                   ) : null,
@@ -577,6 +586,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
                   idAria: 'detectionEngineStepDefineRuleIndices',
                   'data-test-subj': 'detectionEngineStepDefineRuleIndices',
                   euiFieldProps: {
+                    isDisabled: isPrebuiltQueryRule,
                     fullWidth: true,
                     placeholder: '',
                   },
@@ -608,7 +618,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
             <MyLabelButton
               data-test-subj="importQueryFromSavedTimeline"
               onClick={handleOpenTimelineSearch}
-              disabled={formShouldLoadQueryDynamically}
+              disabled={formShouldLoadQueryDynamically || isPrebuiltQueryRule}
             >
               {i18n.IMPORT_TIMELINE_QUERY}
             </MyLabelButton>
@@ -620,7 +630,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
             browserFields,
             idAria: 'detectionEngineStepDefineRuleQueryBar',
             indexPattern,
-            isDisabled: isLoading || formShouldLoadQueryDynamically,
+            isDisabled: isLoading || formShouldLoadQueryDynamically || isPrebuiltQueryRule,
             resetToSavedQuery: formShouldLoadQueryDynamically,
             isLoading: isIndexPatternLoading,
             dataTestSubj: 'detectionEngineStepDefineRuleQueryBar',
@@ -878,7 +888,7 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
             component={PickTimeline}
             componentProps={{
               idAria: 'detectionEngineStepDefineRuleTimeline',
-              isDisabled: isLoading,
+              isDisabled: isLoading || isPrebuiltQueryRule,
               dataTestSubj: 'detectionEngineStepDefineRuleTimeline',
             }}
           />

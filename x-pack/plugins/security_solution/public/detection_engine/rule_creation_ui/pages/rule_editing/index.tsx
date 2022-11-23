@@ -77,6 +77,7 @@ import { useStartTransaction } from '../../../../common/lib/apm/use_start_transa
 import { SINGLE_RULE_ACTIONS } from '../../../../common/lib/apm/user_actions';
 import { PreviewFlyout } from '../../../../detections/pages/detection_engine/rules/preview';
 import { useGetSavedQuery } from '../../../../detections/pages/detection_engine/rules/use_get_saved_query';
+import { isQueryRule } from '../../../../../common/detection_engine/utils';
 
 const formHookNoop = async (): Promise<undefined> => undefined;
 
@@ -219,7 +220,7 @@ const EditRulePageComponent: FC = () => {
         'data-test-subj': 'edit-rule-define-tab',
         id: RuleStep.defineRule,
         name: ruleI18n.DEFINITION,
-        disabled: rule?.immutable,
+        disabled: rule?.immutable && !isQueryRule(rule.type),
         content: (
           <>
             <EuiSpacer />
