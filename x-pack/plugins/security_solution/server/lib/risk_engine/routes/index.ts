@@ -6,3 +6,4 @@
  */
 
 export { riskScorePreviewRoute } from './risk_score_preview_route';
+export { riskScoreCalculationRoute } from './risk_score_calculation_route';

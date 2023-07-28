@@ -74,8 +74,7 @@ import { registerManageExceptionsRoutes } from '../lib/exceptions/api/register_r
 import { registerDashboardsRoutes } from '../lib/dashboards/routes';
 import { registerTagsRoutes } from '../lib/tags/routes';
 import { setAlertTagsRoute } from '../lib/detection_engine/routes/signals/set_alert_tags_route';
-import { riskScorePreviewRoute } from '../lib/risk_engine/routes';
-import { riskScoreCalculationRoute } from '../lib/risk_engine/routes/risk_score_calculation_route';
+import { riskScoreCalculationRoute, riskScorePreviewRoute } from '../lib/risk_engine/routes';
 
 export const initRoutes = (
   router: SecuritySolutionPluginRouter,
