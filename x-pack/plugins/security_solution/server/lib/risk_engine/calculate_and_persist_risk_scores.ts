@@ -7,6 +7,7 @@
 
 import type { ElasticsearchClient, Logger } from '@kbn/core/server';
 
+import { withSecuritySpan } from '../../utils/with_security_span';
 import type { RiskEngineDataClient } from './risk_engine_data_client';
 import type { CalculateAndPersistScoresParams, CalculateAndPersistScoresResponse } from './types';
 import { calculateRiskScores } from './calculate_risk_scores';
@@ -18,16 +19,17 @@ export const calculateAndPersistRiskScores = async (
     spaceId: string;
     riskEngineDataClient: RiskEngineDataClient;
   }
-): Promise<CalculateAndPersistScoresResponse> => {
-  const { riskEngineDataClient, spaceId, ...rest } = params;
-  const writer = await riskEngineDataClient.getWriter({ namespace: spaceId });
-  const { after_keys: afterKeys, scores } = await calculateRiskScores(rest);
+): Promise<CalculateAndPersistScoresResponse> =>
+  withSecuritySpan('calculateAndPersistRiskScores', async () => {
+    const { riskEngineDataClient, spaceId, ...rest } = params;
+    const writer = await riskEngineDataClient.getWriter({ namespace: spaceId });
+    const { after_keys: afterKeys, scores } = await calculateRiskScores(rest);
 
-  if (!scores.host?.length && !scores.user?.length) {
-    return { after_keys: {}, errors: [], scores_written: 0 };
-  }
+    if (!scores.host?.length && !scores.user?.length) {
+      return { after_keys: {}, errors: [], scores_written: 0 };
+    }
 
-  const { errors, docs_written: scoresWritten } = await writer.bulk(scores);
+    const { errors, docs_written: scoresWritten } = await writer.bulk(scores);
 
-  return { after_keys: afterKeys, errors, scores_written: scoresWritten };
-};
+    return { after_keys: afterKeys, errors, scores_written: scoresWritten };
+  });
