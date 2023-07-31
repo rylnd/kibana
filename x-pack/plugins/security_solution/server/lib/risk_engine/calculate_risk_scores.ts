@@ -264,7 +264,7 @@ export const calculateRiskScores = async ({
       user: response.aggregations.user?.after_key,
     };
 
-    return {
+    return withSecuritySpan('calculateRiskScores.bucketsToResponse', async () => ({
       ...(debug ? { request, response } : {}),
       after_keys: afterKeys,
       scores: {
@@ -275,5 +275,5 @@ export const calculateRiskScores = async ({
           bucketToResponse({ bucket, identifierField: 'user.name', now })
         ),
       },
-    };
+    }));
   });
