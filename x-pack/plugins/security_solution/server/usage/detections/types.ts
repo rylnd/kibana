@@ -9,6 +9,6 @@ import type { MlJobUsageMetric } from './ml_jobs/types';
 import type { RuleAdoption } from './rules/types';
 
 export interface DetectionMetrics {
-  ml_jobs: MlJobUsageMetric;
-  detection_rules: RuleAdoption;
+  ml_jobs?: MlJobUsageMetric;
+  detection_rules?: RuleAdoption;
 }
