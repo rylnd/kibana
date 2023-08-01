@@ -8,6 +8,8 @@
 import type { CollectorFetchContext } from '@kbn/usage-collection-plugin/server';
 
 import type { CollectorDependencies, DashboardMetrics } from './types';
+import type { RiskEngineMetrics } from './risk_engine';
+import { getRiskEngineMetrics, riskEngineMetricsSchema } from './risk_engine';
 import type { DetectionMetrics } from './detections/types';
 import { getDetectionsMetrics } from './detections/get_metrics';
 import { getInternalSavedObjectsClient } from './get_internal_saved_objects_client';
@@ -21,6 +23,7 @@ export interface UsageData {
   detectionMetrics: DetectionMetrics;
   endpointMetrics: {};
   dashboardMetrics: DashboardMetrics;
+  riskEngineMetrics: RiskEngineMetrics;
 }
 
 export const registerCollector: RegisterCollector = ({
@@ -79,29 +82,33 @@ export const registerCollector: RegisterCollector = ({
           },
         },
       },
+      riskEngineMetrics: riskEngineMetricsSchema,
     },
     isReady: () => true,
     fetch: async ({ esClient }: CollectorFetchContext): Promise<UsageData> => {
       const savedObjectsClient = await getInternalSavedObjectsClient(core);
-      const [detectionMetrics, endpointMetrics, dashboardMetrics] = await Promise.allSettled([
-        getDetectionsMetrics({
-          eventLogIndex,
-          signalsIndex,
-          esClient,
-          savedObjectsClient,
-          logger,
-          mlClient: ml,
-        }),
-        getEndpointMetrics({ esClient, logger }),
-        getDashboardMetrics({
-          savedObjectsClient,
-          logger,
-        }),
-      ]);
+      const [detectionMetrics, endpointMetrics, dashboardMetrics, riskEngineMetrics] =
+        await Promise.allSettled([
+          getDetectionsMetrics({
+            eventLogIndex,
+            signalsIndex,
+            esClient,
+            savedObjectsClient,
+            logger,
+            mlClient: ml,
+          }),
+          getEndpointMetrics({ esClient, logger }),
+          getDashboardMetrics({
+            savedObjectsClient,
+            logger,
+          }),
+          getRiskEngineMetrics({ esClient, savedObjectsClient, logger }),
+        ]);
       return {
         detectionMetrics: detectionMetrics.status === 'fulfilled' ? detectionMetrics.value : {},
         endpointMetrics: endpointMetrics.status === 'fulfilled' ? endpointMetrics.value : {},
         dashboardMetrics: dashboardMetrics.status === 'fulfilled' ? dashboardMetrics.value : {},
+        riskEngineMetrics: riskEngineMetrics.status === 'fulfilled' ? riskEngineMetrics.value : {},
       };
     },
   });
