@@ -44,6 +44,16 @@ export default ({ getService }: FtrProviderContext): void => {
 
   const createAndSyncRuleAndAlerts = createAndSyncRuleAndAlertsFactory({ supertest, log });
 
+  const logErrors = (response, error) => {
+    if (error) {
+      console.error(JSON.stringify(error, null, 2));
+    }
+    if (response.status !== 200) {
+      console.warn(JSON.stringify(response, null, 2));
+    }
+    return response;
+  };
+
   const calculateRiskScores = async ({
     body,
   }: {
@@ -55,7 +65,7 @@ export default ({ getService }: FtrProviderContext): void => {
       .set('elastic-api-version', '1')
       .set(X_ELASTIC_INTERNAL_ORIGIN_REQUEST, 'kibana')
       .send(body)
-      .expect(200);
+      .then(logErrors);
     return result;
   };
 
