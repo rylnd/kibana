@@ -44,15 +44,17 @@ export default ({ getService }: FtrProviderContext): void => {
 
   const createAndSyncRuleAndAlerts = createAndSyncRuleAndAlertsFactory({ supertest, log });
 
-  const logErrors = (response, error) => {
-    if (error) {
-      console.error(JSON.stringify(error, null, 2));
-    }
-    if (response.status !== 200) {
-      console.warn(JSON.stringify(response, null, 2));
-    }
-    return response;
-  };
+  const hasResponseCode =
+    (expectedResponseCode = 200) =>
+    (response) => {
+      if (response.status !== expectedResponseCode) {
+        const responseString = JSON.stringify(response, null, 2);
+
+        throw new Error(
+          `Expected response to be status ${expectedResponseCode}, but got: ${responseString}`
+        );
+      }
+    };
 
   const calculateRiskScores = async ({
     body,
@@ -64,8 +66,8 @@ export default ({ getService }: FtrProviderContext): void => {
       .set('kbn-xsrf', 'true')
       .set('elastic-api-version', '1')
       .set(X_ELASTIC_INTERNAL_ORIGIN_REQUEST, 'kibana')
-      .send(body)
-      .then(logErrors);
+      .send({})
+      .expect(hasResponseCode(200));
     return result;
   };
 
