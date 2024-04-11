@@ -8,6 +8,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { EuiComboBox, EuiComboBoxOptionOption, EuiFormRow, EuiLink, EuiText } from '@elastic/eui';
+import type { HttpStart } from '@kbn/core/public';
 import type { ListSchema } from '@kbn/securitysolution-io-ts-list-types';
 import { useFindListsBySize } from '@kbn/securitysolution-list-hooks';
 import { DataViewFieldBase } from '@kbn/es-query';
@@ -15,10 +16,6 @@ import { getDocLinks } from '@kbn/doc-links';
 
 import { filterFieldToList } from '../filter_field_to_list';
 import { getGenericComboBoxProps } from '../get_generic_combo_box_props';
-
-// TODO: I have to use any here for now, but once this is available below, we should use the correct types, https://github.com/elastic/kibana/issues/100715
-// import { HttpStart } from '@kbn/core/public';
-type HttpStart = any;
 
 import * as i18n from '../translations';
 

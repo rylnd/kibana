@@ -10,11 +10,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { EuiComboBox, EuiComboBoxOptionOption, EuiFormRow } from '@elastic/eui';
 import { uniq } from 'lodash';
 import { ListOperatorTypeEnum as OperatorTypeEnum } from '@kbn/securitysolution-io-ts-list-types';
+import type { AutocompleteStart } from '@kbn/unified-search-plugin/public';
 import { DataViewBase, DataViewFieldBase } from '@kbn/es-query';
-
-// TODO: I have to use any here for now, but once this is available below, we should use the correct types, https://github.com/elastic/kibana/issues/100715
-// import { AutocompleteStart } from '../../../../../../../src/plugins/unified_search/public';
-type AutocompleteStart = any;
 
 import * as i18n from '../translations';
 import {

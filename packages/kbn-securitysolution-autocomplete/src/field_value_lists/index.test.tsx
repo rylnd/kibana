@@ -11,6 +11,7 @@ import { mount } from 'enzyme';
 import { EuiComboBox, EuiComboBoxOptionOption } from '@elastic/eui';
 import { waitFor } from '@testing-library/react';
 import type { ListSchema } from '@kbn/securitysolution-io-ts-list-types';
+import { coreMock } from '@kbn/core/public/mocks';
 
 import { getField } from '../fields/index.mock';
 import { AutocompleteFieldListsComponent } from '.';
@@ -22,11 +23,7 @@ import {
   VERSION,
 } from '../list_schema/index.mock';
 
-// TODO: Once these mocks are available, use them instead of hand mocking, https://github.com/elastic/kibana/issues/100715
-// const mockKibanaHttpService = coreMock.createStart().http;
-// import { coreMock } from '../../../../../../../src/core/public/mocks';
-const mockKibanaHttpService = jest.fn();
-
+const mockKibanaHttpService = coreMock.createStart().http;
 const mockStart = jest.fn();
 const mockKeywordList: ListSchema = {
   ...getListResponseMock(),
