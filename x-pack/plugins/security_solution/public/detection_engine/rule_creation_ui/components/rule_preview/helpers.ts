@@ -14,6 +14,7 @@ import type { FieldValueQueryBar } from '../query_bar';
 import type { TimeframePreviewOptions } from '../../../../detections/pages/detection_engine/rules/types';
 import { DataSourceType } from '../../../../detections/pages/detection_engine/rules/types';
 import { MAX_NUMBER_OF_NEW_TERMS_FIELDS } from '../../../../../common/constants';
+import { isEqlSequenceQuery } from '../../../../../common/detection_engine/utils';
 
 /**
  * Determines whether or not to display noise warning.
@@ -96,6 +97,23 @@ const isThreatMatchPreviewDisabled = ({
   return false;
 };
 
+const isEqlPreviewDisabled = ({
+  queryBar,
+  groupByFields,
+}: {
+  queryBar: FieldValueQueryBar;
+  groupByFields: string[];
+}): boolean => {
+  const queryIsEmpty = isEmpty(queryBar.query.query) && isEmpty(queryBar.filters);
+  if (queryIsEmpty) {
+    return true;
+  }
+
+  const disabledBySequenceSuppression =
+    groupByFields.length > 0 && isEqlSequenceQuery(queryBar.query.query as string);
+  return disabledBySequenceSuppression;
+};
+
 export const getIsRulePreviewDisabled = ({
   ruleType,
   isQueryBarValid,
@@ -108,6 +126,7 @@ export const getIsRulePreviewDisabled = ({
   machineLearningJobId,
   queryBar,
   newTermsFields,
+  groupByFields,
 }: {
   ruleType: Type;
   isQueryBarValid: boolean;
@@ -120,6 +139,7 @@ export const getIsRulePreviewDisabled = ({
   machineLearningJobId: string[];
   queryBar: FieldValueQueryBar;
   newTermsFields: string[];
+  groupByFields: string[];
 }) => {
   if (ruleType === 'esql') {
     return isEsqlPreviewDisabled({ isQueryBarValid, queryBar });
@@ -141,7 +161,11 @@ export const getIsRulePreviewDisabled = ({
   if (ruleType === 'machine_learning') {
     return machineLearningJobId.length === 0;
   }
-  if (ruleType === 'eql' || ruleType === 'query' || ruleType === 'threshold') {
+  if (ruleType === 'eql') {
+    return isEqlPreviewDisabled({ queryBar, groupByFields });
+  }
+
+  if (ruleType === 'query' || ruleType === 'threshold') {
     return isEmpty(queryBar.query.query) && isEmpty(queryBar.filters);
   }
   if (ruleType === 'new_terms') {

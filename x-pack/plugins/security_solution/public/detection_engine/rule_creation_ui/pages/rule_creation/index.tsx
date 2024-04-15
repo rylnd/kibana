@@ -234,6 +234,7 @@ const CreateRulePageComponent: React.FC = () => {
     machineLearningJobId: defineStepData.machineLearningJobId,
     queryBar: defineStepData.queryBar,
     newTermsFields: defineStepData.newTermsFields,
+    groupByFields: defineStepData.groupByFields,
   });
 
   useEffect(() => {

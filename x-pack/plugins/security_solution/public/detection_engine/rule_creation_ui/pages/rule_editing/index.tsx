@@ -174,6 +174,7 @@ const EditRulePageComponent: FC<{ rule: RuleResponse }> = ({ rule }) => {
     machineLearningJobId: defineStepData.machineLearningJobId,
     queryBar: defineStepData.queryBar,
     newTermsFields: defineStepData.newTermsFields,
+    groupByFields: defineStepData.groupByFields,
   });
 
   const loading = userInfoLoading || listsConfigLoading;
