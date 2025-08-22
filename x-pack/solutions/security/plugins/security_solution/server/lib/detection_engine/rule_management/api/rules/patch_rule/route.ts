@@ -20,6 +20,8 @@ import { readRules } from '../../../logic/detection_rules_client/read_rules';
 import { checkDefaultRuleExceptionListReferences } from '../../../logic/exceptions/check_for_default_rule_exception_list';
 import { validateRuleDefaultExceptionList } from '../../../logic/exceptions/validate_rule_default_exception_list';
 import { getIdError } from '../../../utils/utils';
+import { convertAlertingRuleToRuleResponse } from '../../../logic/detection_rules_client/converters/convert_alerting_rule_to_rule_response';
+import type { RuleResponse } from '../../../../../../../common/api/detection_engine';
 
 export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
   router.versioned
@@ -77,9 +79,32 @@ export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
             ruleId: params.id,
           });
 
-          const patchedRule = await detectionRulesClient.patchRule({
-            rulePatch: params,
-          });
+          let patchedRule: RuleResponse;
+
+          if (onlyUpdatingExceptionLists(params)) {
+            console.log('only updating exception lists');
+            // TODO do we need other parts of the response?
+            const { rules } = await rulesClient.bulkEditRuleParamsWithReadAuth({
+              ids: [existingRule.id],
+              operations: [
+                {
+                  operation: 'set',
+                  field: 'exceptionsList',
+                  value: params.exceptions_list,
+                },
+              ],
+            });
+            console.log('response', rules);
+            // TODO This works, but the types are wrong
+            patchedRule = convertAlertingRuleToRuleResponse(rules[0]);
+
+            // patchedRule = rules[0];
+          } else {
+            console.log('USING NORMAL RULE PATCH');
+            patchedRule = await detectionRulesClient.patchRule({
+              rulePatch: params,
+            });
+          }
 
           return response.ok({
             body: patchedRule,
@@ -93,4 +118,15 @@ export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
         }
       }
     );
+};
+
+const onlyUpdatingExceptionLists = (
+  params: PatchRuleRequestBody
+): params is Pick<PatchRuleRequestBody, 'id' | 'rule_id'> &
+  Required<Pick<PatchRuleRequestBody, 'exceptions_list'>> => {
+  return (
+    Object.keys(params).filter(
+      (paramKey) => !['exceptions_list', 'id', 'rule_id'].includes(paramKey)
+    ).length === 0 && params.exceptions_list !== undefined
+  );
 };

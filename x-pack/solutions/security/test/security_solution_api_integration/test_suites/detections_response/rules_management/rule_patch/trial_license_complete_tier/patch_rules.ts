@@ -6,6 +6,8 @@
  */
 
 import expect from '@kbn/expect';
+import type TestAgent from 'supertest/lib/agent';
+import jExpect from 'expect';
 
 import {
   DETECTION_ENGINE_RULES_URL,
@@ -33,6 +35,7 @@ import {
   getActionsWithoutFrequencies,
   getSomeActionsWithFrequencies,
   updateUsername,
+  createExceptionList,
 } from '../../../utils';
 import {
   createAlertsIndex,
@@ -41,6 +44,10 @@ import {
   createRule,
 } from '../../../../../config/services/detections_response';
 import type { FtrProviderContext } from '../../../../../ftr_provider_context';
+import { ROLES } from '../../../../../../../plugins/security_solution/common/test';
+import { createUserAndRole } from '../../../../../config/services/common';
+import { getCreateExceptionListMinimalSchemaMock } from '../../../../../../../plugins/lists/common/schemas/request/create_exception_list_schema.mock';
+import { deleteAllExceptions } from '../../../../lists_and_exception_lists/utils';
 
 export default ({ getService }: FtrProviderContext) => {
   const supertest = getService('supertest');
@@ -580,6 +587,91 @@ export default ({ getService }: FtrProviderContext) => {
               expect(patchedRule).to.eql(expectedRule);
             });
           });
+        });
+      });
+
+      describe.only('with a read-only rules user', () => {
+        let readerSuperTest: TestAgent<any>;
+
+        before(async () => {
+          await createUserAndRole(getService, ROLES.reader);
+        });
+
+        beforeEach(async () => {
+          await createRule(supertest, log, {
+            ...getSimpleRule('rule-1'),
+            enabled: true,
+          });
+
+          readerSuperTest = await utils.createSuperTest(ROLES.reader);
+          const newExceptionList = {
+            ...getCreateExceptionListMinimalSchemaMock({
+              list_id: 'test_list_id',
+              namespace_type: 'single',
+              type: ExceptionListTypeEnum.DETECTION,
+            }),
+          };
+          await createExceptionList(supertest, log, newExceptionList);
+        });
+
+        afterEach(async () => {
+          await deleteAllExceptions(supertest, log);
+          await deleteAllRules(supertest, log);
+        });
+
+        it('does not allow patching of normal rule fields', async () => {
+          const rulePatch = {
+            rule_id: 'rule-1',
+            name: 'New name',
+            enabled: false,
+          };
+
+          const { body } = await readerSuperTest
+            .patch(DETECTION_ENGINE_RULES_URL)
+            .set('kbn-xsrf', 'true')
+            .send(rulePatch)
+            .expect(403);
+
+          jExpect(body).toEqual(
+            jExpect.objectContaining({
+              status_code: 403,
+              message: 'Unauthorized by "siem" to update "siem.queryRule" rule',
+            })
+          );
+        });
+
+        it('allows patching of exception lists', async () => {
+          const rulePatch = {
+            rule_id: 'rule-1',
+            exceptions_list: [
+              {
+                id: 'exception-list-1',
+                list_id: 'test_list_id',
+                namespace_type: 'single',
+                type: 'detection',
+              },
+            ],
+          };
+
+          const { body } = await readerSuperTest
+            .patch(DETECTION_ENGINE_RULES_URL)
+            .set('kbn-xsrf', 'true')
+            .send(rulePatch)
+            .expect(200);
+
+          jExpect(body).toEqual(
+            jExpect.objectContaining({
+              rule_id: 'rule-1',
+              exceptions_list: [
+                {
+                  id: 'exception-list-1',
+                  list_id: 'test_list_id',
+                  namespace_type: 'single',
+                  type: 'detection',
+                },
+              ],
+            })
+          );
         });
       });
     });
