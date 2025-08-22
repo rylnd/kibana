@@ -17,11 +17,12 @@ import { DETECTION_ENGINE_RULES_URL } from '../../../../../../../common/constant
 import type { SecuritySolutionPluginRouter } from '../../../../../../types';
 import { buildSiemResponse } from '../../../../routes/utils';
 import { readRules } from '../../../logic/detection_rules_client/read_rules';
+import type { RuleResponse } from '../../../../../../../common/api/detection_engine';
+import type { RuleParams } from '../../../../rule_schema';
 import { checkDefaultRuleExceptionListReferences } from '../../../logic/exceptions/check_for_default_rule_exception_list';
 import { validateRuleDefaultExceptionList } from '../../../logic/exceptions/validate_rule_default_exception_list';
 import { getIdError } from '../../../utils/utils';
 import { convertAlertingRuleToRuleResponse } from '../../../logic/detection_rules_client/converters/convert_alerting_rule_to_rule_response';
-import type { RuleResponse } from '../../../../../../../common/api/detection_engine';
 
 export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
   router.versioned
@@ -84,7 +85,7 @@ export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
           if (onlyUpdatingExceptionLists(params)) {
             console.log('only updating exception lists');
             // TODO do we need other parts of the response?
-            const { rules } = await rulesClient.bulkEditRuleParamsWithReadAuth({
+            const { rules } = await rulesClient.bulkEditRuleParamsWithReadAuth<RuleParams>({
               ids: [existingRule.id],
               operations: [
                 {
@@ -95,7 +96,6 @@ export const patchRuleRoute = (router: SecuritySolutionPluginRouter) => {
               ],
             });
             console.log('response', rules);
-            // TODO This works, but the types are wrong
             patchedRule = convertAlertingRuleToRuleResponse(rules[0]);
 
             // patchedRule = rules[0];
