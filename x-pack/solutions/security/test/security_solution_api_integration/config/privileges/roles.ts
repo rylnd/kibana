@@ -213,6 +213,77 @@ export const secNotesNoneV2: Role = {
   },
 };
 
+export const secRulesNone: Role = {
+  name: 'sec_rules_none_role_api_int',
+  privileges: {
+    elasticsearch: {},
+    kibana: [
+      {
+        feature: {
+          securitySolutionTimeline: ['all'],
+          securitySolutionNotes: ['all'],
+          securitySolutionAssistant: ['all'],
+          securitySolutionAttackDiscovery: ['all'],
+          securitySolutionCases: ['all'],
+          securitySolutionCasesV2: ['all'],
+          securitySolutionCasesV3: ['all'],
+          actions: ['all'],
+          actionsSimulators: ['all'],
+          securitySolutionSiemMigrations: ['all'],
+          securitySolutionRulesV1: ['none'],
+        },
+        spaces: ['*'],
+      },
+    ],
+  },
+};
+
+export const secRulesReadV1: Role = {
+  name: 'sec_rules_read_role_api_int',
+  privileges: {
+    elasticsearch: {
+      // indices: [
+      //   {
+      //     names: ['.alerts-security.alerts-*'],
+      //     privileges: ['read', 'view_index_metadata'],
+      //   },
+      // ],
+    },
+    kibana: [
+      {
+        feature: {
+          siemV3: ['read'], // TODO replace with rules privilege
+          securitySolutionRulesV1: ['read'],
+        },
+        spaces: ['*'],
+      },
+    ],
+  },
+};
+
+export const secRulesAllV1: Role = {
+  name: 'sec_rules_all_role_api_int',
+  privileges: {
+    elasticsearch: {
+      indices: [
+        {
+          names: ['.alerts-security.alerts-*'],
+          privileges: ['read', 'view_index_metadata', 'write'],
+        },
+      ],
+    },
+    kibana: [
+      {
+        feature: {
+          siemV3: ['all'], // TODO replace with rules privilege
+          securitySolutionRulesV1: ['all'],
+        },
+        spaces: ['*'],
+      },
+    ],
+  },
+};
+
 export const roles: Role[] = [
   secTimelineAllV2,
   secTimelineReadV2,
@@ -223,4 +294,7 @@ export const roles: Role[] = [
   secAllV1,
   secReadV1,
   secNoneV1,
+  secRulesNone,
+  secRulesReadV1,
+  secRulesAllV1,
 ];

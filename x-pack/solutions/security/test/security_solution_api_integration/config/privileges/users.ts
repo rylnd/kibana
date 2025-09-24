@@ -16,6 +16,9 @@ import {
   secTimelineAllV2,
   secTimelineReadV2,
   secTimelineNoneV2,
+  secRulesReadV1,
+  secRulesAllV1,
+  secRulesNone,
 } from './roles';
 
 /**
@@ -76,6 +79,24 @@ export const secTimelineNoneUser: User = {
   roles: [secTimelineNoneV2.name],
 };
 
+export const secRulesNoneUser: User = {
+  username: 'sec_rules_none',
+  password: 'password',
+  roles: [secRulesNone.name],
+};
+
+export const secRulesReadV1User: User = {
+  username: 'sec_rules_read_user',
+  password: 'password',
+  roles: [secRulesReadV1.name],
+};
+
+export const secRulesAllV1User: User = {
+  username: 'sec_rules_all_user',
+  password: 'password',
+  roles: [secRulesAllV1.name],
+};
+
 export const allUsers: User[] = [
   secAllV1User,
   secReadV1User,
@@ -83,6 +104,9 @@ export const allUsers: User[] = [
   secNotesAllUser,
   secNotesNoneUser,
   secNotesReadUser,
+  secRulesNoneUser,
+  secRulesReadV1User,
+  secRulesAllV1User,
   secTimelineAllUser,
   secTimelineNoneUser,
   secTimelineReadUser,

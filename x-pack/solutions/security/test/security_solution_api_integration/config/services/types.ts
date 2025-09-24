@@ -31,6 +31,10 @@ interface FeaturesPrivileges {
 interface ElasticsearchIndices {
   names: string[];
   privileges: string[];
+  field_security?: {
+    grant?: string[];
+    except?: string[];
+  };
 }
 
 export interface Role {
