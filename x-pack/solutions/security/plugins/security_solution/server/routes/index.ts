@@ -99,7 +99,7 @@ export const initRoutes = (
   setSignalsStatusRoute(router, logger, telemetrySender);
   setAlertTagsRoute(router);
   setAlertAssigneesRoute(router);
-  querySignalsRoute(router, ruleDataClient);
+  querySignalsRoute(router, ruleDataClient, getStartServices);
   getSignalsMigrationStatusRoute(router, docLinks);
   createSignalsMigrationRoute(router, docLinks);
   finalizeSignalsMigrationRoute(router, ruleDataService, docLinks);
