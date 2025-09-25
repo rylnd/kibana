@@ -186,7 +186,7 @@ export default ({ getService }: FtrProviderContextWithSpaces) => {
         expect(body.hits.total.value).to.eql(0);
       });
     });
-    // TODO: tests fail after first run. figure out why
+
     describe.only('query_signals_route with hybrid RBAC', () => {
       const query = {
         query: {
@@ -194,6 +194,18 @@ export default ({ getService }: FtrProviderContextWithSpaces) => {
             should: [{ match_all: {} }],
           },
         },
+      };
+      const getAlertCount = async () => {
+        const { count } = await es.count({
+          index: '.alerts-security.alerts-default',
+          query: {
+            bool: {
+              should: [{ match_all: {} }],
+            },
+          },
+        });
+
+        return count;
       };
 
       before(async () => {
@@ -218,21 +230,32 @@ export default ({ getService }: FtrProviderContextWithSpaces) => {
         }
       });
 
-      afterEach(async () => {
-        await utils.cleanUpCustomRole();
-      });
-
       beforeEach(async () => {
         await deleteAllAlerts(supertest, log, es);
+        await createAlertsIndex(supertest, log);
         await esArchiver.load(
           'x-pack/solutions/security/test/fixtures/es_archives/security_solution/alerts/8.8.0_multiple_docs',
-          { useCreate: true, docsOnly: true }
+          { docsOnly: false }
         );
         await esArchiver.load(
           'x-pack/solutions/security/test/fixtures/es_archives/security_solution/external_consumer_alerts',
-          { useCreate: true, docsOnly: true }
+          // docsOnly: true ensures that any existing data in the same index is not first deleted
+          { docsOnly: true }
         );
-        await createAlertsIndex(supertest, log);
+
+        expect(await getAlertCount()).to.eql(
+          6,
+          "sanity check failed: there should be three 'siem' alerts and three 'external' alerts"
+        );
+      });
+
+      afterEach(async () => {
+        await esArchiver.unload(
+          'x-pack/solutions/security/test/fixtures/es_archives/security_solution/external_consumer_alerts'
+        );
+        await esArchiver.unload(
+          'x-pack/solutions/security/test/fixtures/es_archives/security_solution/alerts/8.8.0_multiple_docs'
+        );
       });
 
       describe('as a user with no privileges', () => {

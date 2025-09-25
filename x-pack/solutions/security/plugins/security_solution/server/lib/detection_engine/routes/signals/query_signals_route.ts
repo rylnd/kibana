@@ -175,7 +175,6 @@ export const querySignalsRoute = (
             sort: sort as Sort,
             ignore_unavailable: true,
           });
-          console.log('response', result);
           return response.ok({ body: result });
         } catch (err) {
           // error while getting or updating signal with id: id in signal index .siem-signals
