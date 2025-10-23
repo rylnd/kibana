@@ -18,19 +18,19 @@ export interface MissingCapability {
   description: string;
 }
 
-const minimumSiemMigrationCapabilities: MissingCapability[] = [
-  {
-    capability: `${SIEM_MIGRATIONS_FEATURE_ID}.all`,
-    description: i18n.translate(
-      'xpack.securitySolution.siemMigrations.service.capabilities.siemMigrationsAll',
-      { defaultMessage: 'Security > SIEM migrations: All' }
-    ),
-  },
+const minimumCapabilities: MissingCapability[] = [
   {
     capability: RULES_UI_READ_PRIVILEGE,
     description: i18n.translate(
       'xpack.securitySolution.siemMigrations.service.capabilities.rulesRead',
       { defaultMessage: 'Security > Rules: Read' }
+    ),
+  },
+  {
+    capability: `${SIEM_MIGRATIONS_FEATURE_ID}.all`,
+    description: i18n.translate(
+      'xpack.securitySolution.siemMigrations.service.capabilities.siemMigrationsAll',
+      { defaultMessage: 'Security > SIEM migrations: All' }
     ),
   },
 ];
@@ -57,7 +57,7 @@ export type CapabilitiesLevel = 'minimum' | 'all';
 export type CapabilitiesByLevel = Record<CapabilitiesLevel, MissingCapability[]>;
 
 export const requiredSiemMigrationCapabilities: CapabilitiesByLevel = {
-  minimum: minimumSiemMigrationCapabilities,
+  minimum: minimumCapabilities,
   all: allCapabilities,
 };
 
