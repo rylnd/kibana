@@ -8,7 +8,7 @@
 import path from 'path';
 import { CA_CERT_PATH } from '@kbn/dev-utils';
 import type { FtrConfigProviderContext } from '@kbn/test';
-import { kbnTestConfig, kibanaTestUser } from '@kbn/test';
+import { findTestPluginPaths, kbnTestConfig, kibanaTestUser } from '@kbn/test';
 import { ScoutTestRunConfigCategory } from '@kbn/scout-info';
 import { PRECONFIGURED_ACTION_CONNECTORS } from '../shared';
 import { installMockPrebuiltRulesPackage } from '../../test_suites/detections_response/utils';
@@ -114,11 +114,11 @@ export function createTestConfig(options: CreateTestConfigOptions, testFiles?: s
             'doesNotMatchForIndicatorMatchRuleEnabled',
             'endpointExceptionsMovedUnderManagement',
           ])}`,
+          ...findTestPluginPaths([path.resolve(__dirname, '../../plugins')]),
           `--plugin-path=${path.resolve(
             __dirname,
             '../../../../../../../src/platform/test/analytics/plugins/analytics_ftr_helpers'
           )}`,
-
           '--xpack.task_manager.poll_interval=1000',
           `--xpack.actions.preconfigured=${JSON.stringify(PRECONFIGURED_ACTION_CONNECTORS)}`,
           ...(ssl

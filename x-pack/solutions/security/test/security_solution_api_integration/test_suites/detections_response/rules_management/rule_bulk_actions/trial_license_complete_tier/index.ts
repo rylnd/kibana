@@ -15,5 +15,6 @@ export default function ({ loadTestFile }: FtrProviderContext) {
     loadTestFile(require.resolve('./perform_bulk_action_suppression'));
     loadTestFile(require.resolve('./perform_bulk_action_ess'));
     loadTestFile(require.resolve('./perform_bulk_enable_disable.ts'));
+    loadTestFile(require.resolve('./perform_bulk_enable_authorization'));
   });
 }

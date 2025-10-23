@@ -1,0 +1,14 @@
+{
+  "type": "plugin",
+  "id": "@kbn/ad-hoc-features-plugin",
+  "owner": "@elastic/security-solution",
+  "group": "platform",
+  "visibility": "private",
+  "plugin": {
+    "id": "adHocFeatures",
+    "server": true,
+    "browser": false,
+    "requiredPlugins": ["features", "securitySolution"],
+    "optionalPlugins": ["security", "spaces"]
+  }
+}

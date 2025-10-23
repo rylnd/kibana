@@ -1868,6 +1868,8 @@
       "@kbn/security-solution-ess/*": ["x-pack/solutions/security/plugins/security_solution_ess/*"],
       "@kbn/security-solution-features": ["x-pack/solutions/security/packages/features"],
       "@kbn/security-solution-features/*": ["x-pack/solutions/security/packages/features/*"],
+      "@kbn/security-solution-ad-hoc-features-plugin": ["x-pack/solutions/security/test/security_solution_api_integration/plugins/ad_hoc_features"],
+      "@kbn/security-solution-ad-hoc-features-plugin/*": ["x-pack/solutions/security/test/security_solution_api_integration/plugins/ad_hoc_features/*"],
       "@kbn/security-solution-fixtures-plugin": ["x-pack/platform/test/cases_api_integration/common/plugins/security_solution"],
       "@kbn/security-solution-fixtures-plugin/*": ["x-pack/platform/test/cases_api_integration/common/plugins/security_solution/*"],
       "@kbn/security-solution-navigation": ["x-pack/solutions/security/packages/navigation"],
