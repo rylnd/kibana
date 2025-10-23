@@ -9,6 +9,8 @@ import type { Capabilities } from '@kbn/core/public';
 import {
   RULES_UI_READ_PRIVILEGE,
   SIEM_MIGRATIONS_FEATURE_ID,
+  RULES_UI_READ_PRIVILEGE,
+  RULES_UI_EDIT_PRIVILEGE,
 } from '@kbn/security-solution-features/constants';
 import { i18n } from '@kbn/i18n';
 import { CapabilitiesChecker } from '../../../common/lib/capabilities';
