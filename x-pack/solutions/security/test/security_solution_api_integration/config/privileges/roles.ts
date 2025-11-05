@@ -224,3 +224,72 @@ export const roles: Role[] = [
   secReadV1,
   secNoneV1,
 ];
+
+export const rulesRead: Role = {
+  name: 'rules:read',
+  privileges: {
+    elasticsearch: {
+      indices: [
+        {
+          names: [
+            '.alerts-security.alerts-default',
+            '.internal.alerts-security.alerts-default-*',
+            '.siem-signals-default',
+            '.lists-default',
+            '.items-default',
+          ],
+          privileges: ['maintenance', 'write', 'read', 'view_index_metadata'],
+        },
+      ],
+    },
+    kibana: [
+      {
+        feature: {
+          indexPatterns: ['all'],
+          securitySolutionRulesV1: ['read'],
+          savedObjectsManagement: ['all'],
+        },
+        spaces: ['*'],
+      },
+    ],
+  },
+};
+
+export const rulesAll: Role = {
+  name: 'rules:all',
+  privileges: {
+    elasticsearch: {
+      indices: [
+        {
+          names: [
+            '.alerts-security.alerts-default',
+            '.internal.alerts-security.alerts-default-*',
+            '.siem-signals-default',
+            '.lists-default',
+            '.items-default',
+          ],
+          privileges: ['manage', 'write', 'read', 'view_index_metadata'],
+        },
+        {
+          names: [
+            '.preview.alerts-security.alerts-default',
+            '.internal.preview.alerts-security.alerts-default-*',
+          ],
+          privileges: ['read'],
+        },
+      ],
+    },
+    kibana: [
+      {
+        feature: {
+          indexPatterns: ['all'],
+          siemv5: ['all'],
+          actions: ['all'],
+          securitySolutionRulesV1: ['all'],
+          savedObjectsManagement: ['all'],
+        },
+        spaces: ['*'],
+      },
+    ],
+  },
+};
