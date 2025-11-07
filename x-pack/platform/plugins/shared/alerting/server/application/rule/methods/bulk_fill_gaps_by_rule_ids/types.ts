@@ -18,10 +18,6 @@ export enum BulkFillGapsScheduleResult {
   ERRORED = 'ERRORED',
 }
 
-export interface BulkGapFillError extends BulkOperationError {
-  step: BulkGapsFillStep;
-}
-
 interface RuleToBackfill {
   id: string;
   name: string;
@@ -45,5 +41,5 @@ export interface BulkFillGapsByRuleIdsOptions {
 export interface BulkFillGapsByRuleIdsResult {
   backfilled: RuleToBackfill[];
   skipped: RuleToBackfill[];
-  errored: BulkGapFillError[];
+  errored: BulkOperationError[];
 }

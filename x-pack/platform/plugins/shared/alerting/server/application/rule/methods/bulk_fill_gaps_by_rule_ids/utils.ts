@@ -6,17 +6,17 @@
  */
 
 import { isBoom } from '@hapi/boom';
-import { type BulkGapFillError, BulkGapsFillStep } from './types';
-import type { RulesClientContext } from '../../../../rules_client';
+import { BulkGapsFillStep } from './types';
+import type { BulkOperationError, RulesClientContext } from '../../../../rules_client';
 import type { RuleAuditEventParams } from '../../../../rules_client/common/audit_events';
 import { ruleAuditEvent, RuleAuditAction } from '../../../../rules_client/common/audit_events';
 import { RULE_SAVED_OBJECT_TYPE } from '../../../../saved_objects';
 
-export const toBulkGapFillError = (
+export const toBulkOperationError = (
   rule: { id: string; name: string },
   step: BulkGapsFillStep,
   error: Error
-): BulkGapFillError => {
+): BulkOperationError => {
   let fallbackMessage: string;
 
   const status = isBoom(error) ? error.output.statusCode : 500;
@@ -30,14 +30,14 @@ export const toBulkGapFillError = (
       fallbackMessage = 'Error validating user access to the rule';
       break;
   }
+
   return {
     rule: {
       id: rule.id,
       name: rule.name,
     },
-    step,
     status,
-    message: message ?? fallbackMessage,
+    message: `${step} - ${message ?? fallbackMessage}`,
   };
 };
 

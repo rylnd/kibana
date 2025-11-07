@@ -15,7 +15,7 @@ import {
   BulkGapsFillStep,
   BulkFillGapsScheduleResult,
 } from './types';
-import { logProcessedAsAuditEvent, toBulkGapFillError } from './utils';
+import { logProcessedAsAuditEvent, toBulkOperationError } from './utils';
 import { AlertingAuthorizationEntity, WriteOperations } from '../../../../authorization';
 import { batchBackfillRuleGaps } from './batch_backfill_rule_gaps';
 import { validateBackfillSchedule } from '../../../../../common/lib';
@@ -67,7 +67,7 @@ export const bulkFillGapsByRuleIds = async (
     } catch (error) {
       rulesBatch.forEach((rule) => {
         logProcessedAsAuditEvent(context, { id: rule.id, name: rule.name }, error);
-        errored.push(toBulkGapFillError(rule, BulkGapsFillStep.ACCESS_VALIDATION, error));
+        errored.push(toBulkOperationError(rule, BulkGapsFillStep.ACCESS_VALIDATION, error));
         return;
       });
     }
