@@ -89,18 +89,20 @@ export const buildBulkResponse = (
           ? 'Bulk manual rule run partially failed'
           : 'Bulk manual rule run failed';
     }
+
+    const statusCode = getHighestStatusCodeFromErrors(errors);
     return response.custom<BulkEditActionResponse>({
       headers: { 'content-type': 'application/json' },
       body: {
         message,
-        status_code: 500,
+        status_code: statusCode,
         attributes: {
           errors: normalizeErrorResponse(errors),
           results,
           summary,
         },
       },
-      statusCode: 500,
+      statusCode,
     });
   }
 
@@ -117,30 +119,12 @@ export const normalizeErrorResponse = (errors: BulkActionError[]): NormalizedRul
   const errorsMap = new Map<string, NormalizedRuleError>();
 
   errors.forEach((errorObj) => {
-    let message: string;
-    let statusCode: number = 500;
-    let errorCode: BulkActionsDryRunErrCode | undefined;
-    let rule: RuleDetailsInError;
-    // transform different error types (PromisePoolError<string> | PromisePoolError<RuleAlertType> | BulkOperationError)
-    // to one common used in NormalizedRuleError
-    if ('rule' in errorObj) {
-      rule = errorObj.rule;
-      message = errorObj.message;
-    } else {
-      const { error, item } = errorObj;
-      const transformedError =
-        error instanceof Error
-          ? transformError(error)
-          : { message: String(error), statusCode: 500 };
-
-      errorCode = (error as DryRunError)?.errorCode;
-      message = transformedError.message;
-      statusCode = transformedError.statusCode;
-      // The promise pool item is either a rule ID string or a rule object. We have
-      // string IDs when we fail to fetch rules. Rule objects come from other
-      // situations when we found a rule but failed somewhere else.
-      rule = typeof item === 'string' ? { id: item } : { id: item.id, name: item.name };
-    }
+    const {
+      rules: [rule],
+      message,
+      status_code: statusCode,
+      err_code: errorCode,
+    } = normalizeError(errorObj);
 
     if (errorsMap.has(message)) {
       errorsMap.get(message)?.rules.push(rule);
@@ -155,4 +139,44 @@ export const normalizeErrorResponse = (errors: BulkActionError[]): NormalizedRul
   });
 
   return Array.from(errorsMap, ([_, normalizedError]) => normalizedError);
+};
+
+/**
+ * Normalize different error types (PromisePoolError<string> | PromisePoolError<RuleAlertType> | BulkOperationError)
+ * to one common used in NormalizedRuleError
+ * @param error BulkActionError
+ */
+const normalizeError = (errorObj: BulkActionError): NormalizedRuleError => {
+  let message: string;
+  let statusCode: number = 500;
+  let errorCode: BulkActionsDryRunErrCode | undefined;
+  let rule: RuleDetailsInError;
+
+  if ('rule' in errorObj) {
+    rule = errorObj.rule;
+    message = errorObj.message;
+  } else {
+    const { error, item } = errorObj;
+    const transformedError =
+      error instanceof Error ? transformError(error) : { message: String(error), statusCode: 500 };
+
+    errorCode = (error as DryRunError)?.errorCode;
+    message = transformedError.message;
+    statusCode = transformedError.statusCode;
+    // The promise pool item is either a rule ID string or a rule object. We have
+    // string IDs when we fail to fetch rules. Rule objects come from other
+    // situations when we found a rule but failed somewhere else.
+    rule = typeof item === 'string' ? { id: item } : { id: item.id, name: item.name };
+  }
+
+  return {
+    message,
+    status_code: statusCode,
+    err_code: errorCode,
+    rules: [rule],
+  };
+};
+
+const getHighestStatusCodeFromErrors = (errors: BulkActionError[]) => {
+  return Math.max(...errors.map((error) => normalizeError(error).status_code));
 };
