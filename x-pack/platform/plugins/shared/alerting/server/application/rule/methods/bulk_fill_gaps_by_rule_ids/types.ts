@@ -5,6 +5,8 @@
  * 2.0.
  */
 
+import type { BulkOperationError } from '../../../../rules_client';
+
 export enum BulkGapsFillStep {
   ACCESS_VALIDATION = 'ACCESS_VALIDATION',
   SCHEDULING = 'SCHEDULING',
@@ -16,13 +18,8 @@ export enum BulkFillGapsScheduleResult {
   ERRORED = 'ERRORED',
 }
 
-export interface BulkGapFillingErroredRule {
-  rule: {
-    id: string;
-    name: string;
-  };
+export interface BulkGapFillError extends BulkOperationError {
   step: BulkGapsFillStep;
-  errorMessage: string;
 }
 
 interface RuleToBackfill {
@@ -48,5 +45,5 @@ export interface BulkFillGapsByRuleIdsOptions {
 export interface BulkFillGapsByRuleIdsResult {
   backfilled: RuleToBackfill[];
   skipped: RuleToBackfill[];
-  errored: BulkGapFillingErroredRule[];
+  errored: BulkGapFillError[];
 }

@@ -250,5 +250,81 @@ describe('buildBulkResponse', () => {
         })
       );
     });
+
+    describe('with bulk operation errors', () => {
+      it('returns a 403 error in the expected format when the bulk operation error is 403', () => {
+        const error = {
+          rule: { id: 'mockedId', name: 'mockedName' },
+          message: 'You do not have permission to perform this action',
+          status: 403,
+        };
+
+        buildBulkResponse(mockResponseFactory, {
+          bulkAction: BulkActionTypeEnum.duplicate,
+          isDryRun: false,
+          errors: [error],
+          updated: [],
+          created: [],
+          deleted: [],
+          skipped: [],
+        });
+
+        expect(mockResponseFactory.custom).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              message: 'Bulk edit failed',
+              status_code: 403,
+              attributes: expect.objectContaining({
+                errors: [
+                  expect.objectContaining({
+                    message: 'You do not have permission to perform this action',
+                    status_code: 403,
+                    rules: [{ id: 'mockedId', name: 'mockedName' }],
+                  }),
+                ],
+              }),
+            }),
+            statusCode: 403,
+          })
+        );
+      });
+
+      it('returns a 500 error in the expected format when the bulk operation error is 500', () => {
+        const error = {
+          rule: { id: 'mockedId', name: 'mockedName' },
+          message: 'Something went wrong',
+          status: 500,
+        };
+
+        buildBulkResponse(mockResponseFactory, {
+          bulkAction: BulkActionTypeEnum.duplicate,
+          isDryRun: false,
+          errors: [error],
+          updated: [],
+          created: [],
+          deleted: [],
+          skipped: [],
+        });
+
+        expect(mockResponseFactory.custom).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({
+              message: 'Bulk edit failed',
+              status_code: 500,
+              attributes: expect.objectContaining({
+                errors: [
+                  expect.objectContaining({
+                    message: 'Something went wrong',
+                    status_code: 500,
+                    rules: [{ id: 'mockedId', name: 'mockedName' }],
+                  }),
+                ],
+              }),
+            }),
+            statusCode: 500,
+          })
+        );
+      });
+    });
   });
 });

@@ -75,6 +75,7 @@ export const normalizeBulkActionError = (errorObj: BulkActionError): NormalizedR
   if ('rule' in errorObj) {
     rule = errorObj.rule;
     message = errorObj.message;
+    statusCode = errorObj.status ?? 500;
   } else {
     const { error, item } = errorObj;
     const transformedError =
