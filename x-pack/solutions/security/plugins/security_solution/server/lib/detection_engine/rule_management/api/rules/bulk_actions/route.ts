@@ -38,7 +38,7 @@ import {
 } from '../../../logic/bulk_actions/validations';
 import { getExportByObjectIds } from '../../../logic/export/get_export_by_object_ids';
 import { RULE_MANAGEMENT_BULK_ACTION_SOCKET_TIMEOUT_MS } from '../../timeouts';
-import type { BulkActionError } from './bulk_actions_response';
+import type { BulkActionError } from './utils';
 import { buildBulkResponse } from './bulk_actions_response';
 import { bulkEnableDisableRules } from './bulk_enable_disable_rules';
 import { fetchRulesByQueryOrIds } from './fetch_rules_by_query_or_ids';
