@@ -5,20 +5,23 @@
  * 2.0.
  */
 
+import { isBoom } from '@hapi/boom';
 import { BulkGapsFillStep } from './types';
-import type { RulesClientContext } from '../../../../rules_client';
+import type { BulkOperationError, RulesClientContext } from '../../../../rules_client';
 import type { RuleAuditEventParams } from '../../../../rules_client/common/audit_events';
 import { ruleAuditEvent, RuleAuditAction } from '../../../../rules_client/common/audit_events';
 import { RULE_SAVED_OBJECT_TYPE } from '../../../../saved_objects';
 
-export type BulkGapFillError = ReturnType<typeof toBulkGapFillError>;
-
-export const toBulkGapFillError = (
+export const toBulkOperationError = (
   rule: { id: string; name: string },
   step: BulkGapsFillStep,
   error: Error
-) => {
+): BulkOperationError => {
   let fallbackMessage: string;
+
+  const status = isBoom(error) ? error.output.statusCode : 500;
+  const message = isBoom(error) ? error.output.payload.message : error.message;
+
   switch (step) {
     case BulkGapsFillStep.SCHEDULING:
       fallbackMessage = 'Error scheduling backfills';
@@ -27,13 +30,14 @@ export const toBulkGapFillError = (
       fallbackMessage = 'Error validating user access to the rule';
       break;
   }
+
   return {
     rule: {
       id: rule.id,
       name: rule.name,
     },
-    step,
-    errorMessage: error?.message ?? fallbackMessage,
+    status,
+    message: `${step} - ${message ?? fallbackMessage}`,
   };
 };
 

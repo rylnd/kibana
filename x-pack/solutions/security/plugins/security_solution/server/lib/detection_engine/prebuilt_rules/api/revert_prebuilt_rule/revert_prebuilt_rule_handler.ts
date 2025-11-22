@@ -17,10 +17,8 @@ import {
 import type { SecuritySolutionRequestHandlerContext } from '../../../../../types';
 import { buildSiemResponse } from '../../../routes/utils';
 import { createPrebuiltRuleAssetsClient } from '../../logic/rule_assets/prebuilt_rule_assets_client';
-import {
-  normalizeErrorResponse,
-  type BulkActionError,
-} from '../../../rule_management/api/rules/bulk_actions/bulk_actions_response';
+import type { BulkActionError } from '../../../rule_management/api/rules/bulk_actions/utils';
+import { normalizeErrorResponse } from '../../../rule_management/api/rules/bulk_actions/bulk_actions_response';
 import type { RuleTriad } from '../../model/rule_groups/get_rule_groups';
 import { zipRuleVersions } from '../../logic/rule_versions/zip_rule_versions';
 import { revertPrebuiltRules } from '../../logic/rule_objects/revert_prebuilt_rules';

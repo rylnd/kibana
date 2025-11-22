@@ -88,12 +88,7 @@ export const bulkScheduleRuleGapFilling = async ({
     }
   );
 
-  errored.forEach((backfillingError) => {
-    errors.push({
-      rule: backfillingError.rule,
-      message: `${backfillingError.step} - ${backfillingError.errorMessage}`,
-    });
-  });
+  errors.push(...errored);
 
   const rulesDict = keyBy(validatedRules, 'id');
 

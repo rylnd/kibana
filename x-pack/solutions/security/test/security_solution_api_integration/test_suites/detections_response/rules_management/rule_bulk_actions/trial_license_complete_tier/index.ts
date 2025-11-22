@@ -9,6 +9,7 @@ import type { FtrProviderContext } from '../../../../../ftr_provider_context';
 
 export default function ({ loadTestFile }: FtrProviderContext) {
   describe('Rules Management - Rule Bulk Action API', function () {
+    loadTestFile(require.resolve('./bulk_actions_rbac'));
     loadTestFile(require.resolve('./perform_bulk_action_dry_run'));
     loadTestFile(require.resolve('./perform_bulk_action_dry_run_ess'));
     loadTestFile(require.resolve('./perform_bulk_action'));

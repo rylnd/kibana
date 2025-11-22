@@ -6,7 +6,7 @@
  */
 
 import type { RuleResponse } from '../../../../../../common/api/detection_engine';
-import type { BulkActionError } from '../../../rule_management/api/rules/bulk_actions/bulk_actions_response';
+import type { BulkActionError } from '../../../rule_management/api/rules/bulk_actions/utils';
 import { createBulkActionError } from '../../../rule_management/utils/utils';
 
 export const getConcurrencyErrors = (
