@@ -265,6 +265,7 @@ export interface DocLinks {
   };
   readonly indexPatterns: {
     readonly introduction: string;
+    readonly dataViewsApi: string;
     readonly fieldFormattersNumber: string;
     readonly fieldFormattersString: string;
     readonly runtimeFields: string;
@@ -308,6 +309,8 @@ export interface DocLinks {
     readonly configureAlertSuppression: string;
     readonly ingestDataToSecurity: string;
     readonly automaticImport: string;
+    readonly mlJobCompatibility: string;
+    readonly mitreAttackCoverage: string;
   };
   readonly server: {
     readonly protocol: string;

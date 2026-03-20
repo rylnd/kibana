@@ -18,8 +18,6 @@ export const COMMON_ARIA_LABEL_ENDING = i18n.translate(
   }
 );
 
-export const SOLUTION_REQUIREMENTS_LINK_PATH =
-  'solutions/security/get-started/elastic-security-requirements';
 export const SOLUTION_REQUIREMENTS_LINK_TEXT = i18n.translate(
   'xpack.securitySolution.documentationLinks.solutionRequirements.text',
   {
@@ -27,8 +25,6 @@ export const SOLUTION_REQUIREMENTS_LINK_TEXT = i18n.translate(
   }
 );
 
-export const DETECTIONS_REQUIREMENTS_LINK_PATH =
-  'solutions/security/detect-and-alert/detections-privileges';
 export const DETECTIONS_REQUIREMENTS_LINK_TEXT = i18n.translate(
   'xpack.securitySolution.documentationLinks.detectionsRequirements.text',
   {
@@ -36,8 +32,6 @@ export const DETECTIONS_REQUIREMENTS_LINK_TEXT = i18n.translate(
   }
 );
 
-export const ML_JOB_COMPATIBILITY_LINK_PATH =
-  'troubleshoot/security/detection-rules#ml-job-compatibility';
 export const ML_JOB_COMPATIBILITY_LINK_TEXT = i18n.translate(
   'xpack.securitySolution.documentationLinks.mlJobCompatibility.text',
   {
@@ -45,8 +39,6 @@ export const ML_JOB_COMPATIBILITY_LINK_TEXT = i18n.translate(
   }
 );
 
-export const COVERAGE_OVERVIEW_LINK_PATH =
-  'solutions/security/detect-and-alert/mitre-attack-coverage';
 export const COVERAGE_OVERVIEW_LINK_TEXT = i18n.translate(
   'xpack.securitySolution.documentationLinks.coverageOverview.text',
   {

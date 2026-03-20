@@ -294,6 +294,9 @@ export const getDocLinks = ({ kibanaBranch, buildFlavor }: GetDocLinkOptions): D
     },
     indexPatterns: {
       introduction: `${ELASTIC_DOCS}explore-analyze/find-and-organize/data-views`,
+      dataViewsApi: isServerless
+        ? `${KIBANA_SERVERLESS_APIS}group/endpoint-data-views`
+        : `${KIBANA_APIS}group/endpoint-data-views`,
       fieldFormattersNumber: `${ELASTIC_DOCS}explore-analyze/numeral-formatting`,
       fieldFormattersString: `${ELASTIC_DOCS}explore-analyze/find-and-organize/data-views#string-field-formatters`,
       runtimeFields: `${ELASTIC_DOCS}explore-analyze/find-and-organize/data-views#runtime-fields`,
@@ -448,6 +451,8 @@ export const getDocLinks = ({ kibanaBranch, buildFlavor }: GetDocLinkOptions): D
         ? `${KIBANA_APIS}group/endpoint-security-detections-api`
         : `${KIBANA_SERVERLESS_APIS}group/endpoint-security-detections-api`,
       configureAlertSuppression: `${ELASTIC_DOCS}solutions/security/detect-and-alert/alert-suppression#configure-alert-suppression`,
+      mlJobCompatibility: `${ELASTIC_DOCS}troubleshoot/security/detection-rules#ml-job-compatibility`,
+      mitreAttackCoverage: `${ELASTIC_DOCS}solutions/security/detect-and-alert/mitre-attack-coverage`,
     },
     server: {
       protocol: `${ELASTIC_DOCS}reference/kibana/configuration-reference/general-settings#server-protocol`,

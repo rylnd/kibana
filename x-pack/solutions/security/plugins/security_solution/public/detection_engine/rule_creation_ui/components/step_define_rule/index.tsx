@@ -63,6 +63,7 @@ import { DataViewSelectorField } from '../data_view_selector_field';
 import { useFetchIndex } from '../../../../common/containers/source';
 import { RequiredFields } from '../../../rule_creation/components/required_fields';
 import { DocLink } from '../../../../common/components/links_to_docs/doc_link';
+import { useKibana } from '../../../../common/lib/kibana';
 import { useLicense } from '../../../../common/hooks/use_license';
 import { MINIMUM_LICENSE_FOR_SUPPRESSION } from '../../../../../common/detection_engine/constants';
 import { useUpsellingMessage } from '../../../../common/hooks/use_upselling';
@@ -215,6 +216,10 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
 
   const [threatIndexPatternsLoading, { indexPatterns: threatIndexPatterns }] =
     useFetchIndex(threatIndex);
+
+  const { docLinks } = useKibana().services;
+  const { introduction: dataViewsDocUrl, dataViewsApi: dataViewsApiUrl } =
+    docLinks.links.indexPatterns;
 
   // reset form when rule type changes
   useEffect(() => {
@@ -393,18 +398,12 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
                 id="xpack.securitySolution.dataViewSelectorText1"
                 defaultMessage="Use Kibana "
               />
-              <DocLink
-                docPath="explore-analyze/find-and-organize/data-views"
-                linkText="Data Views"
-              />
+              <DocLink href={dataViewsDocUrl} linkText="Data Views" />
               <FormattedMessage
                 id="xpack.securitySolution.dataViewSelectorText2"
                 defaultMessage=" or specify individual "
               />
-              <DocLink
-                docPath="api/doc/kibana/group/endpoint-data-views"
-                linkText="index patterns"
-              />
+              <DocLink href={dataViewsApiUrl} linkText="index patterns" />
               <FormattedMessage
                 id="xpack.securitySolution.dataViewSelectorText3"
                 defaultMessage=" as your rule's data source to be searched."
@@ -467,6 +466,8 @@ const StepDefineRuleComponent: FC<StepDefineRuleProps> = ({
     dataViewIndexPatternToggleButtonOptions,
     indexModified,
     handleResetIndices,
+    dataViewsDocUrl,
+    dataViewsApiUrl,
   ]);
 
   const QueryBarMemo = useMemo(
