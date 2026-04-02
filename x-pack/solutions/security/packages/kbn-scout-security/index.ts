@@ -11,6 +11,9 @@ export { test, spaceTest } from './src/playwright';
 // re-exported test framework from @kbn/scout
 export { lighthouseTest, apiTest, globalSetupHook, tags } from '@kbn/scout';
 
+// Elasticsearch helpers for Cross-Project Search (linked project) tests
+export { getLinkedEsClient } from '@kbn/scout/src/common/services';
+
 // re-exported fixtures & configuration from @kbn/scout
 export {
   browserAuthFixture,
@@ -58,6 +61,7 @@ export type {
 
 // Re-exported fixture types
 export type { ApiServicesFixture, BrowserAuthFixture, SamlAuth } from '@kbn/scout';
+export type { ApiClientFixture } from '@kbn/scout/src/playwright/fixtures/scope/worker/api_client';
 
 // Re-exported service & configuration types
 export type {
