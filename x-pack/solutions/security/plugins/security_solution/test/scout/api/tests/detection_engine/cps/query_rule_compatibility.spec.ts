@@ -17,6 +17,7 @@ import { expect } from '@kbn/scout-security/api';
 import {
   DEFAULT_INDICATOR_SOURCE_PATH,
   DETECTION_ENGINE_RULES_PREVIEW,
+  DETECTION_ENGINE_RULES_URL,
 } from '../../../../../../common/constants';
 
 /**
@@ -50,6 +51,7 @@ const CPS_DETECTION_TEST_INDEX_MAPPINGS = {
     cps_run_id: { type: 'keyword' as const },
     'cps.detection.test.run_id': { type: 'keyword' as const },
     'host.name': { type: 'keyword' as const },
+    /** ECS `event.kind` splits source events (`event`) from indicator rows (`enrichment` + NOT query). */
     'event.kind': { type: 'keyword' as const },
     'threat.indicator': {
       properties: {
@@ -161,7 +163,10 @@ const seedThreatMatchCluster = async (params: {
       '@timestamp': docTimestamp,
       cps_run_id: runId,
       'cps.detection.test.run_id': runId,
-      'event.kind': 'indicator',
+      // ECS: enrichment + threat.indicator is the usual TI shape; satisfies `NOT event.kind: event`.
+      'event.kind': 'enrichment',
+      // Root `host.name` is required for threat_mapping `value: 'host.name'` (see get_mapping_filters.ts).
+      'host.name': hostName,
       'threat.indicator': {
         host: { name: hostName },
       },
@@ -212,23 +217,32 @@ const seedCpsDocuments = async (params: {
   });
 };
 
-const buildRulePreviewBody = (params: {
+const buildRuleDefinitionBody = (params: {
   ruleType: CpsRuleCompatibilityType;
   runId: string;
   testIndex: string;
-  timeframeEnd: string;
+  /** `preview` matches historical preview-only rule names in this file. */
+  label: 'preview' | 'rule';
+  /**
+   * Scheduled interval for the persisted rule. Execution tests use a long interval so only
+   * `_run_soon` runs during polling; preview tests keep `1m` to match prior behavior.
+   */
+  interval?: string;
 }): Record<string, unknown> => {
-  const { ruleType, runId, testIndex, timeframeEnd } = params;
+  const { ruleType, runId, testIndex, label, interval: intervalOverride } = params;
 
   const baseFields = {
-    name: `CPS detection preview ${ruleType} ${runId}`,
+    name:
+      label === 'preview'
+        ? `CPS detection preview ${ruleType} ${runId}`
+        : `CPS detection rule ${ruleType} ${runId}`,
     description: `Scout CPS scope validation for ${ruleType} rule`,
     risk_score: 21,
     severity: 'low',
     rule_id: `cps-de-${ruleType}-${runId}`,
     from: 'now-24h',
     to: 'now',
-    interval: '1m',
+    interval: intervalOverride ?? '1m',
     max_signals: 100,
     enabled: true,
     author: [],
@@ -237,8 +251,6 @@ const buildRulePreviewBody = (params: {
     threat: [],
     tags: [],
     actions: [],
-    invocationCount: 1,
-    timeframeEnd,
   };
 
   const kqlRunFilter = `cps_run_id: "${runId}"`;
@@ -288,7 +300,7 @@ const buildRulePreviewBody = (params: {
         language: 'kuery',
         index: [testIndex],
         query: `${kqlRunFilter} and event.kind: event`,
-        threat_query: `${kqlRunFilter} and event.kind: indicator`,
+        threat_query: `${kqlRunFilter} and NOT event.kind: event`,
         threat_language: 'kuery',
         threat_index: [testIndex],
         threat_indicator_path: DEFAULT_INDICATOR_SOURCE_PATH,
@@ -297,8 +309,7 @@ const buildRulePreviewBody = (params: {
             entries: [
               {
                 field: 'host.name',
-                // `value` is the full threat-index field path (not a path relative to threat_indicator_path).
-                value: 'threat.indicator.host.name',
+                value: 'host.name',
                 type: 'mapping',
               },
             ],
@@ -329,6 +340,17 @@ const buildRulePreviewBody = (params: {
   }
 };
 
+const buildRulePreviewBody = (params: {
+  ruleType: CpsRuleCompatibilityType;
+  runId: string;
+  testIndex: string;
+  timeframeEnd: string;
+}): Record<string, unknown> => ({
+  ...buildRuleDefinitionBody({ ...params, label: 'preview' }),
+  invocationCount: 1,
+  timeframeEnd: params.timeframeEnd,
+});
+
 const getExpectedHostNames = (params: {
   routing: 'origin' | 'all_projects';
 }): { expectedCount: number; expectedSortedHosts: string[] } => {
@@ -351,6 +373,8 @@ const fetchPreviewAlertHostNames = async (params: {
 
   const alertSearch = await esClient.search({
     index: previewIndex,
+    // Preview / RAC indices are created on first write; polling must not throw before they exist.
+    ignore_unavailable: true,
     query: {
       term: {
         'kibana.alert.rule.uuid': previewId,
@@ -364,6 +388,102 @@ const fetchPreviewAlertHostNames = async (params: {
   return alertSearch.hits.hits
     .map((hit) => (hit._source as Record<string, unknown> | undefined)?.['host.name'])
     .filter((v): v is string => typeof v === 'string');
+};
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const getAlertsIndexForSpace = (spaceId: string): string => `.alerts-security.alerts-${spaceId}`;
+
+const fetchRealAlertHostNames = async (params: {
+  esClient: EsClient;
+  ruleKibanaId: string;
+  spaceId: string;
+}): Promise<string[]> => {
+  const { esClient, ruleKibanaId, spaceId } = params;
+  const alertsIndex = getAlertsIndexForSpace(spaceId);
+
+  const alertSearch = await esClient.search({
+    index: alertsIndex,
+    // Namespace alerts alias is installed on first alert write; treat missing index as no hits while polling.
+    ignore_unavailable: true,
+    query: {
+      term: {
+        'kibana.alert.rule.uuid': ruleKibanaId,
+      },
+    },
+    track_total_hits: true,
+    size: 25,
+    _source: true,
+  });
+
+  return alertSearch.hits.hits
+    .map((hit) => (hit._source as Record<string, unknown> | undefined)?.['host.name'])
+    .filter((v): v is string => typeof v === 'string');
+};
+
+const triggerRuleRunSoon = async (params: {
+  apiClient: ApiClientFixture;
+  spaceId: string;
+  headers: Record<string, string>;
+  ruleKibanaId: string;
+}): Promise<void> => {
+  const { apiClient, spaceId, headers, ruleKibanaId } = params;
+  const runSoonResponse = await apiClient.post(
+    `s/${spaceId}/internal/alerting/rule/${encodeURIComponent(ruleKibanaId)}/_run_soon`,
+    { headers }
+  );
+  expect([200, 204]).toContain(runSoonResponse.statusCode);
+};
+
+const deleteDetectionRuleIfCreated = async (params: {
+  apiClient: ApiClientFixture;
+  spaceId: string;
+  headers: Record<string, string>;
+  ruleKibanaId: string | undefined;
+}): Promise<void> => {
+  const { apiClient, spaceId, headers, ruleKibanaId } = params;
+  if (ruleKibanaId === undefined) {
+    return;
+  }
+  await apiClient.delete(
+    `s/${spaceId}${DETECTION_ENGINE_RULES_URL}?id=${encodeURIComponent(ruleKibanaId)}`,
+    { headers }
+  );
+};
+
+const waitForExecutionAlertHostNames = async (params: {
+  esClient: EsClient;
+  ruleKibanaId: string;
+  spaceId: string;
+  expectedSortedHosts: string[];
+}): Promise<void> => {
+  const { esClient, ruleKibanaId, spaceId, expectedSortedHosts } = params;
+  const alertsIndex = getAlertsIndexForSpace(spaceId);
+  const maxAttempts = 60;
+  const delayMs = 1000;
+
+  let lastHostNames: string[] = [];
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await esClient.indices.refresh({ index: alertsIndex }, { ignore: [404] });
+    lastHostNames = (await fetchRealAlertHostNames({ esClient, ruleKibanaId, spaceId })).sort();
+    if (lastHostNames.length === expectedSortedHosts.length) {
+      expect(lastHostNames).toStrictEqual(expectedSortedHosts);
+      return;
+    }
+    await sleep(delayMs);
+  }
+
+  throw new Error(
+    `Timed out waiting for detection alerts (expected ${
+      expectedSortedHosts.length
+    } alert(s) with host names [${expectedSortedHosts.join(', ')}], last saw [${lastHostNames.join(
+      ', '
+    )}])`
+  );
 };
 
 apiTest.describe(
@@ -510,6 +630,158 @@ apiTest.describe(
             expect(hostNames).toHaveLength(expectedCount);
             expect(hostNames).toStrictEqual(expectedSortedHosts);
           } finally {
+            await esClient.indices.delete({ index: testIndex }, { ignore: [404] });
+            await linkedEs.indices.delete({ index: testIndex }, { ignore: [404] });
+            await apiClient.delete(`api/spaces/space/${spaceId}`, { headers });
+          }
+        }
+      );
+
+      apiTest(
+        `${ruleType} rule execution matches data in the origin project only when the space routes to origin`,
+        async ({ apiClient, config, esClient, log, samlAuth }) => {
+          const credentials = await samlAuth.asInteractiveUser('admin');
+          const headers: Record<string, string> = {
+            ...credentials.cookieHeader,
+            ...COMMON_HEADERS,
+          };
+
+          const runId = randomUUID();
+          const spaceId = `cps-de-exec-${ruleType}-${runId.slice(0, 8)}`;
+          const testIndex = `scout-${spaceId}`;
+          const linkedEs = getLinkedEsClient(config, log);
+          let ruleKibanaId: string | undefined;
+
+          await createKibanaSpace({
+            apiClient,
+            spaceId,
+            headers,
+            projectRouting: SPACE_PROJECT_ROUTING_ORIGIN_ONLY,
+          });
+
+          try {
+            await seedCpsDocuments({
+              ruleType,
+              testIndex,
+              runId,
+              esClient,
+              linkedEs,
+            });
+
+            const createResponse = await apiClient.post(
+              `s/${spaceId}${DETECTION_ENGINE_RULES_URL}`,
+              {
+                headers,
+                responseType: 'json',
+                body: buildRuleDefinitionBody({
+                  ruleType,
+                  runId,
+                  testIndex,
+                  label: 'rule',
+                  interval: '24h',
+                }),
+              }
+            );
+
+            expect(createResponse).toHaveStatusCode(200);
+            const createdRule = createResponse.body as { id: string };
+            ruleKibanaId = createdRule.id;
+
+            await triggerRuleRunSoon({
+              apiClient,
+              spaceId,
+              headers,
+              ruleKibanaId,
+            });
+
+            const { expectedSortedHosts } = getExpectedHostNames({
+              routing: 'origin',
+            });
+
+            await waitForExecutionAlertHostNames({
+              esClient,
+              ruleKibanaId,
+              spaceId,
+              expectedSortedHosts,
+            });
+          } finally {
+            await deleteDetectionRuleIfCreated({ apiClient, spaceId, headers, ruleKibanaId });
+            await esClient.indices.delete({ index: testIndex }, { ignore: [404] });
+            await linkedEs.indices.delete({ index: testIndex }, { ignore: [404] });
+            await apiClient.delete(`api/spaces/space/${spaceId}`, { headers });
+          }
+        }
+      );
+
+      apiTest(
+        `${ruleType} rule execution matches data in origin and linked projects when the space uses all-projects routing`,
+        async ({ apiClient, config, esClient, log, samlAuth }) => {
+          const credentials = await samlAuth.asInteractiveUser('admin');
+          const headers: Record<string, string> = {
+            ...credentials.cookieHeader,
+            ...COMMON_HEADERS,
+          };
+
+          const runId = randomUUID();
+          const spaceId = `cps-de-exec-${ruleType}-all-${runId.slice(0, 8)}`;
+          const testIndex = `scout-${spaceId}`;
+          const linkedEs = getLinkedEsClient(config, log);
+          let ruleKibanaId: string | undefined;
+
+          await createKibanaSpace({
+            apiClient,
+            spaceId,
+            headers,
+            projectRouting: SPACE_PROJECT_ROUTING_ALL,
+          });
+
+          try {
+            await seedCpsDocuments({
+              ruleType,
+              testIndex,
+              runId,
+              esClient,
+              linkedEs,
+            });
+
+            const createResponse = await apiClient.post(
+              `s/${spaceId}${DETECTION_ENGINE_RULES_URL}`,
+              {
+                headers,
+                responseType: 'json',
+                body: buildRuleDefinitionBody({
+                  ruleType,
+                  runId,
+                  testIndex,
+                  label: 'rule',
+                  interval: '24h',
+                }),
+              }
+            );
+
+            expect(createResponse).toHaveStatusCode(200);
+            const createdRule = createResponse.body as { id: string };
+            ruleKibanaId = createdRule.id;
+
+            await triggerRuleRunSoon({
+              apiClient,
+              spaceId,
+              headers,
+              ruleKibanaId,
+            });
+
+            const { expectedSortedHosts } = getExpectedHostNames({
+              routing: 'all_projects',
+            });
+
+            await waitForExecutionAlertHostNames({
+              esClient,
+              ruleKibanaId,
+              spaceId,
+              expectedSortedHosts,
+            });
+          } finally {
+            await deleteDetectionRuleIfCreated({ apiClient, spaceId, headers, ruleKibanaId });
             await esClient.indices.delete({ index: testIndex }, { ignore: [404] });
             await linkedEs.indices.delete({ index: testIndex }, { ignore: [404] });
             await apiClient.delete(`api/spaces/space/${spaceId}`, { headers });
