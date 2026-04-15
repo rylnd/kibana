@@ -6,7 +6,16 @@
  */
 
 import type { Observable } from 'rxjs';
-import { QUERY_RULE_TYPE_ID, SAVED_QUERY_RULE_TYPE_ID } from '@kbn/securitysolution-rules';
+import {
+  EQL_RULE_TYPE_ID,
+  ESQL_RULE_TYPE_ID,
+  INDICATOR_RULE_TYPE_ID,
+  ML_RULE_TYPE_ID,
+  NEW_TERMS_RULE_TYPE_ID,
+  QUERY_RULE_TYPE_ID,
+  SAVED_QUERY_RULE_TYPE_ID,
+  THRESHOLD_RULE_TYPE_ID,
+} from '@kbn/securitysolution-rules';
 import type { Logger, LogMeta } from '@kbn/core/server';
 import { SavedObjectsClient } from '@kbn/core/server';
 import type { UsageCollectionSetup, UsageCounter } from '@kbn/usage-collection-plugin/server';
@@ -43,6 +52,7 @@ import {
   createQueryAlertType,
   createThresholdAlertType,
 } from './lib/detection_engine/rule_types';
+import { createSecurityRuleQueryInspectorHandler } from './lib/detection_engine/rule_types/rule_query_inspector_handler';
 import { initRoutes } from './routes';
 import { registerLimitedConcurrencyRoutes } from './routes/limited_concurrency';
 import { ManifestConstants, ManifestTask } from './endpoint/lib/artifacts';
@@ -617,6 +627,26 @@ export class Plugin implements ISecuritySolutionPlugin {
     );
     plugins.alerting.registerType(securityRuleTypeWrapper(createThresholdAlertType()));
     plugins.alerting.registerType(securityRuleTypeWrapper(createNewTermsAlertType()));
+
+    const securityRuleQueryInspectorHandler = createSecurityRuleQueryInspectorHandler(
+      () => core.getStartServices().then(([coreStart]) => coreStart)
+    );
+
+    const inspectorRuleTypeIds: string[] = [
+      EQL_RULE_TYPE_ID,
+      QUERY_RULE_TYPE_ID,
+      SAVED_QUERY_RULE_TYPE_ID,
+      THRESHOLD_RULE_TYPE_ID,
+      INDICATOR_RULE_TYPE_ID,
+      NEW_TERMS_RULE_TYPE_ID,
+      ML_RULE_TYPE_ID,
+    ];
+    if (!experimentalFeatures.esqlRulesDisabled) {
+      inspectorRuleTypeIds.push(ESQL_RULE_TYPE_ID);
+    }
+    for (const ruleTypeId of inspectorRuleTypeIds) {
+      plugins.alerting.registerRuleQueryInspector(ruleTypeId, securityRuleQueryInspectorHandler);
+    }
 
     const trialCompanionDeps: TrialCompanionRoutesDeps = {
       router,

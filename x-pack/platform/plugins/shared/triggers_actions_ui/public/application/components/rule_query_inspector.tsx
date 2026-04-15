@@ -26,6 +26,7 @@ import { i18n } from '@kbn/i18n';
 import { useQuery } from '@kbn/react-query';
 import { BASE_ALERTING_API_PATH } from '@kbn/alerting-plugin/common';
 import { OBSERVABILITY_THRESHOLD_RULE_TYPE_ID } from '@kbn/rule-data-utils';
+import { SECURITY_SOLUTION_RULE_TYPE_IDS } from '@kbn/securitysolution-rules';
 
 import { useKibana } from '../../common/lib/kibana';
 
@@ -212,7 +213,10 @@ export function RuleQueryInspectorFlyout({
   );
 }
 
-const SUPPORTED_RULE_TYPES = new Set([OBSERVABILITY_THRESHOLD_RULE_TYPE_ID]);
+const SUPPORTED_RULE_TYPES = new Set([
+  OBSERVABILITY_THRESHOLD_RULE_TYPE_ID,
+  ...SECURITY_SOLUTION_RULE_TYPE_IDS,
+]);
 
 export interface RuleQueryInspectorProps {
   ruleId: string;

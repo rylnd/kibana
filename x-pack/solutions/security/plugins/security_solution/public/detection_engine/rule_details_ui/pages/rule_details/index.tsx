@@ -135,6 +135,8 @@ import { AlertsTableFilterGroup } from '../../../../detections/components/alerts
 import { useSignalHelpers } from '../../../../sourcerer/containers/use_signal_helpers';
 import { HeaderPage } from '../../../../common/components/header_page';
 import { ExceptionsViewer } from '../../../rule_exceptions/components/all_exception_items_table';
+import { RuleQueryInspector } from '@kbn/triggers-actions-ui-plugin/public';
+import { ruleTypeMappings } from '@kbn/securitysolution-rules';
 import { EditRuleSettingButtonLink } from './edit_rule_settings_button_link/edit_rule_settings_button_link';
 import { useStartMlJobs } from '../../../rule_management/logic/use_start_ml_jobs';
 import { useBulkDuplicateExceptionsConfirmation } from '../../../rule_management_ui/components/rules_table/bulk_actions/use_bulk_duplicate_confirmation';
@@ -731,6 +733,14 @@ export const RuleDetailsPage = connector(
                     </EuiFlexItem>
                     <EuiFlexItem grow={false}>
                       <EuiFlexGroup alignItems="center" gutterSize="s" responsive={false}>
+                        {rule != null && (
+                          <EuiFlexItem grow={false}>
+                            <RuleQueryInspector
+                              ruleId={ruleId}
+                              ruleTypeId={ruleTypeMappings[rule.type]}
+                            />
+                          </EuiFlexItem>
+                        )}
                         {isAgentChatExperienceEnabled && rule != null ? (
                           <EuiFlexItem grow={false}>
                             <AddRuleAttachmentToChatButton rule={rule} pathway="rule_details" />
