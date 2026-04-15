@@ -629,7 +629,12 @@ export class Plugin implements ISecuritySolutionPlugin {
     plugins.alerting.registerType(securityRuleTypeWrapper(createNewTermsAlertType()));
 
     const securityRuleQueryInspectorHandler = createSecurityRuleQueryInspectorHandler(
-      () => core.getStartServices().then(([coreStart]) => coreStart)
+      () =>
+        core.getStartServices().then(([coreStart, depsStart]) => ({
+          coreStart,
+          getSpaceId: depsStart.spaces?.spacesService?.getSpaceId,
+        })),
+      { lists: plugins.lists }
     );
 
     const inspectorRuleTypeIds: string[] = [

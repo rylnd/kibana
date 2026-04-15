@@ -7,18 +7,32 @@
 
 import type { estypes } from '@elastic/elasticsearch';
 import dateMath from '@kbn/datemath';
-import type { CoreStart, KibanaRequest } from '@kbn/core/server';
+import type { CoreStart, ElasticsearchClient, KibanaRequest } from '@kbn/core/server';
+import type { Filter } from '@kbn/es-query';
 import type { DataViewAttributes } from '@kbn/data-views-plugin/common';
 import type {
   RuleQueryInspectorHandler,
   RuleQueryInspectorResponse,
 } from '@kbn/alerting-plugin/server';
+import type { ListPluginSetup } from '@kbn/lists-plugin/server';
+import { buildExceptionFilter } from '@kbn/lists-plugin/server/services/exception_lists';
 import { getIndexListFromEsqlQuery } from '@kbn/securitysolution-utils';
+
+import type { ListArray } from '@kbn/securitysolution-io-ts-list-types';
 
 import { getQueryFilter } from './utils/get_query_filter';
 import { buildEventsSearchQuery, buildTimeRangeFilter } from './utils/build_events_query';
+import { getListClient } from './utils/get_list_client';
+import { getExceptions } from './utils/utils';
 
-type GetCoreStart = () => Promise<CoreStart>;
+interface GetStartDeps {
+  coreStart: CoreStart;
+  getSpaceId: ((request: KibanaRequest) => string) | undefined;
+}
+
+interface HandlerDeps {
+  lists: ListPluginSetup | undefined;
+}
 
 interface SecurityRuleParams {
   type: string;
@@ -36,6 +50,7 @@ interface SecurityRuleParams {
   eventCategoryOverride?: string;
   timestampField?: string;
   tiebreakerField?: string;
+  exceptionsList?: ListArray;
   threshold?: {
     field: string | string[];
     value: number;
@@ -95,6 +110,47 @@ const resolveSavedQuery = async (
   };
 };
 
+const resolveExceptionFilter = async (
+  params: SecurityRuleParams,
+  lists: ListPluginSetup | undefined,
+  esClient: ElasticsearchClient,
+  savedObjectsClient: ReturnType<CoreStart['savedObjects']['getScopedClient']>,
+  spaceId: string
+): Promise<Filter | undefined> => {
+  if (!params.exceptionsList?.length || !lists) {
+    return undefined;
+  }
+
+  const { listClient, exceptionsClient } = getListClient({
+    lists,
+    spaceId,
+    updatedByUser: null,
+    esClient,
+    savedObjectClient: savedObjectsClient,
+  });
+
+  const exceptionItems = await getExceptions({
+    client: exceptionsClient,
+    lists: params.exceptionsList,
+    shouldFilterOutEndpointExceptions: false,
+  });
+
+  if (!exceptionItems.length) {
+    return undefined;
+  }
+
+  const { filter } = await buildExceptionFilter({
+    startedAt: new Date(),
+    alias: null,
+    excludeExceptions: true,
+    chunkSize: 10,
+    lists: exceptionItems,
+    listClient,
+  });
+
+  return filter;
+};
+
 const getPrimaryTimestamp = (params: SecurityRuleParams): string =>
   params.timestampOverride ?? '@timestamp';
 
@@ -111,6 +167,7 @@ const buildQueryRuleRequest = (
   runtimeMappings: estypes.MappingRuntimeFields | undefined,
   from: string,
   to: string,
+  exceptionFilter: Filter | undefined,
   query?: string,
   language?: string,
   filters?: unknown[]
@@ -126,7 +183,7 @@ const buildQueryRuleRequest = (
     language: effectiveLanguage as 'kuery' | 'lucene',
     filters: effectiveFilters,
     index,
-    exceptionFilter: undefined,
+    exceptionFilter,
   });
 
   return buildEventsSearchQuery({
@@ -150,7 +207,8 @@ const buildEqlRuleRequest = (
   index: string[],
   runtimeMappings: estypes.MappingRuntimeFields | undefined,
   from: string,
-  to: string
+  to: string,
+  exceptionFilter: Filter | undefined
 ) => {
   const primaryTimestamp = getPrimaryTimestamp(params);
   const secondaryTimestamp = getSecondaryTimestamp(params);
@@ -160,7 +218,7 @@ const buildEqlRuleRequest = (
     language: 'eql',
     filters: params.filters ?? [],
     index,
-    exceptionFilter: undefined,
+    exceptionFilter,
   });
 
   const rangeFilter = buildTimeRangeFilter({ to, from, primaryTimestamp, secondaryTimestamp });
@@ -185,7 +243,8 @@ const buildEqlRuleRequest = (
 const buildEsqlRuleRequest = (
   params: SecurityRuleParams,
   from: string,
-  to: string
+  to: string,
+  exceptionFilter: Filter | undefined
 ) => {
   const primaryTimestamp = getPrimaryTimestamp(params);
   const secondaryTimestamp = getSecondaryTimestamp(params);
@@ -195,7 +254,7 @@ const buildEsqlRuleRequest = (
     language: 'esql',
     filters: params.filters ?? [],
     index: undefined,
-    exceptionFilter: undefined,
+    exceptionFilter,
   });
 
   const rangeFilter = buildTimeRangeFilter({ to, from, primaryTimestamp, secondaryTimestamp });
@@ -211,7 +270,8 @@ const buildEsqlRuleRequest = (
 };
 
 export const createSecurityRuleQueryInspectorHandler = (
-  getCoreStart: GetCoreStart
+  getStartDeps: () => Promise<GetStartDeps>,
+  deps: HandlerDeps
 ): RuleQueryInspectorHandler => {
   return async (
     request: KibanaRequest,
@@ -221,12 +281,21 @@ export const createSecurityRuleQueryInspectorHandler = (
     _alertId: string | undefined
   ): Promise<RuleQueryInspectorResponse> => {
     const params = ruleParams as unknown as SecurityRuleParams;
-    const coreStart = await getCoreStart();
+    const { coreStart, getSpaceId } = await getStartDeps();
     const esClient = coreStart.elasticsearch.client.asScoped(request).asCurrentUser;
     const savedObjectsClient = coreStart.savedObjects.getScopedClient(request);
+    const spaceId = getSpaceId?.(request) ?? 'default';
 
     const { index, runtimeMappings } = await resolveIndices(params, savedObjectsClient);
     const { from, to } = resolveTimeRange(params);
+
+    const exceptionFilter = await resolveExceptionFilter(
+      params,
+      deps.lists,
+      esClient,
+      savedObjectsClient,
+      spaceId
+    );
 
     let searchRequest: Record<string, unknown>;
     let label: string | undefined;
@@ -245,14 +314,14 @@ export const createSecurityRuleQueryInspectorHandler = (
           filters = saved.filters;
         }
         searchRequest = buildQueryRuleRequest(
-          params, index, runtimeMappings, from, to, query, language, filters
+          params, index, runtimeMappings, from, to, exceptionFilter, query, language, filters
         ) as unknown as Record<string, unknown>;
         label = 'Saved Query Rule';
         break;
       }
       case 'eql': {
         searchRequest = buildEqlRuleRequest(
-          params, index, runtimeMappings, from, to
+          params, index, runtimeMappings, from, to, exceptionFilter
         ) as unknown as Record<string, unknown>;
         label = 'EQL Rule';
         isEql = true;
@@ -260,7 +329,7 @@ export const createSecurityRuleQueryInspectorHandler = (
       }
       case 'esql': {
         searchRequest = buildEsqlRuleRequest(
-          params, from, to
+          params, from, to, exceptionFilter
         ) as unknown as Record<string, unknown>;
         label = 'ES|QL Rule';
         isEsql = true;
@@ -271,7 +340,7 @@ export const createSecurityRuleQueryInspectorHandler = (
       }
       default: {
         searchRequest = buildQueryRuleRequest(
-          params, index, runtimeMappings, from, to
+          params, index, runtimeMappings, from, to, exceptionFilter
         ) as unknown as Record<string, unknown>;
         break;
       }
